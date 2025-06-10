@@ -1,4 +1,4 @@
-# Proyecto de sofwar empresarial del sena
+# Proyecto de softwar empresarial del sena
 
 ## Integrantes: Esteban, Haiber, Mateo, Wilder Mauricio Serna Quintero
 
