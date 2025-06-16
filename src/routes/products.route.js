@@ -2,6 +2,7 @@ import { Router } from "express";
 
 export const ProductsRouter = Router();
 
+// 🗂️ Productos simulados (mock data)
 const products = [
   {
     id: 1,
@@ -155,7 +156,30 @@ const products = [
   },
 ];
 
-
+// 📦 Ruta: GET /api/products
 ProductsRouter.get("/", (req, res) => {
-  res.json(products);
+  res.status(200).json({
+    success: true,
+    message: "Lista de productos",
+    data: products,
+  });
+});
+
+// 📦 Ruta: GET /api/products/:id
+ProductsRouter.get("/:id", (req, res) => {
+  const { id } = req.params;
+  const product = products.find((p) => p.id === parseInt(id));
+
+  if (!product) {
+    return res.status(404).json({
+      success: false,
+      message: "Producto no encontrado",
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Producto encontrado",
+    data: product,
+  });
 });
