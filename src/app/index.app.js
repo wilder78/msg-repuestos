@@ -8,10 +8,10 @@ const initApp = () => {
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
-  app.use(express.static(path.join(config.dirname, "public")));
+  app.use(express.static(path.join(config.projectRoot, "public")));
 
   app.get("/", (req, res) => {
-    res.sendFile(path.join(config.dirname, "public", "index.html"));
+    res.sendFile(path.join(config.projectRoot, "public", "index.html"));
   });
 
   app.use("/api", indexRouter);
