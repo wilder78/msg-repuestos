@@ -4,6 +4,6 @@ import ProductsRouter from "./products.route.js";
 const router = Router();
 
 // Montar rutas hijas
-router.use("/products", ProductsRouter);
+router.use("/", ProductsRouter);
 
 export default router;

@@ -14,7 +14,7 @@ const initApp = () => {
     res.sendFile(path.join(config.projectRoot, "public", "index.html"));
   });
 
-  app.use("/api", indexRouter);
+  app.use("/api/products", indexRouter);
 
   return app;
 };

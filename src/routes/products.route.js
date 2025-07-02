@@ -22,25 +22,41 @@ ProductsRouter.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Leer y parsear los productos
-    const productsString = await fs.promises.readFile(pathToProducts, "utf-8");
-    const products = JSON.parse(productsString);
+    if (!id || typeof id !== "string") {
+      return res.status(400).json({ error: "ID inválido o no proporcionado." });
+    }
 
-    // Buscar producto por ID
-    const product = products.find((p) => p.id === id);
+    let products;
+    try {
+      const productsString = await fs.promises.readFile(
+        pathToProducts,
+        "utf-8"
+      );
+      products = JSON.parse(productsString);
+    } catch (fileError) {
+      console.error("❌ Error al leer el archivo:", fileError);
+      return res.status(500).json({ error: "Error al cargar los productos." });
+    }
+
+    const product = products.find(
+      (p) => String(p.id).trim() === String(id).trim()
+    );
 
     if (!product) {
-      return res.status(404).json({ error: "Producto no encontrado." });
+      return res.status(404).json({
+        error: "Producto no encontrado.",
+      });
     }
 
     res.status(200).json({ product });
-
   } catch (error) {
-    console.error("❌ Error al buscar producto por ID:", error);
-    res.status(500).json({ error: "Error interno del servidor." });
+    console.error("❌ Error crítico:", error);
+    res.status(500).json({
+      error: "Error interno del servidor.",
+      details: error.message,
+    });
   }
 });
-
 
 // Endpoint para generar un nuevo registro.
 ProductsRouter.post("/", validationInputProducts, async (req, res) => {
