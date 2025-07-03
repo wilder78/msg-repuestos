@@ -2,7 +2,7 @@ import { Router } from "express";
 import fs from "fs";
 import path from "path";
 import { config } from "../config/ruta.config.js";
-import { validationInputProducts } from "../middlewares/validationMiddleware.js";
+// import { validationInputProducts } from "../middlewares/validationMiddleware.js";
 import { v4 as uuidv4 } from "uuid";
 
 const ProductsRouter = Router();
@@ -59,7 +59,7 @@ ProductsRouter.get("/:id", async (req, res) => {
 });
 
 // Endpoint para generar un nuevo registro.
-ProductsRouter.post("/", validationInputProducts, async (req, res) => {
+ProductsRouter.post("/", async (req, res) => {
   let productsString = await fs.promises.readFile(pathToProducts, "utf-8");
   const products = JSON.parse(productsString);
 
@@ -103,91 +103,110 @@ ProductsRouter.post("/", validationInputProducts, async (req, res) => {
   res.send({ message: "Producto creado", data: product });
 });
 
+// Endpoint para actualizar un registro.
+ProductsRouter.put("/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const {
+      descripcion,
+      codigo,
+      categoria,
+      marca,
+      precio,
+      precio_compra,
+      cantidad,
+      unidad_medida,
+      estado,
+      fecha_registro,
+      imagen_url,
+      proveedor,
+    } = req.body;
+
+    if (!id) {
+      return res.status(400).send({ message: "Product ID is required" });
+    }
+
+    // Leer productos del archivo
+    const productsString = await fs.promises.readFile(pathToProducts, "utf-8");
+    const products = JSON.parse(productsString);
+
+    // Buscar el índice del producto a actualizar
+    const index = products.findIndex((p) => p.id.toString() === id.toString());
+
+    if (index === -1) {
+      return res.status(404).send({ message: "Producto no encontrado" });
+    }
+
+    // Actualizar los campos proporcionados
+    const existingProduct = products[index];
+    const updatedProduct = {
+      ...existingProduct,
+      descripcion: descripcion ?? existingProduct.descripcion,
+      codigo: codigo ?? existingProduct.codigo,
+      categoria: categoria ?? existingProduct.categoria,
+      marca: marca ?? existingProduct.marca,
+      precio: precio ?? existingProduct.precio,
+      precio_compra: precio_compra ?? existingProduct.precio_compra,
+      cantidad: cantidad ?? existingProduct.cantidad,
+      unidad_medida: unidad_medida ?? existingProduct.unidad_medida,
+      estado: estado ?? existingProduct.estado,
+      fecha_registro: fecha_registro ?? existingProduct.fecha_registro,
+      imagen_url: imagen_url ?? existingProduct.imagen_url,
+      proveedor: proveedor ?? existingProduct.proveedor,
+    };
+
+    // Reemplazar el producto en el array
+    products[index] = updatedProduct;
+
+    // Guardar el archivo actualizado
+    const productsStringified = JSON.stringify(products, null, "\t");
+    await fs.promises.writeFile(pathToProducts, productsStringified);
+
+    res.status(200).send({
+      message: "Producto actualizado con éxito",
+      data: updatedProduct,
+    });
+  } catch (error) {
+    error.message = `Error en PUT /api/products/${req.params.id}.\n${error.message}`;
+    next(error);
+  }
+});
+
+// Endpoint para eliminar un registro.
+ProductsRouter.delete("/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).send({ message: "Product ID is required" });
+    }
+
+    // Leer productos del archivo
+    const productsString = await fs.promises.readFile(pathToProducts, "utf-8");
+    const products = JSON.parse(productsString);
+
+    // Buscar el índice del producto a eliminar
+    const index = products.findIndex((p) => p.id.toString() === id.toString());
+
+    if (index === -1) {
+      return res.status(404).send({ message: "Producto no encontrado" });
+    }
+
+    // Eliminar el producto del array
+    const deletedProduct = products.splice(index, 1);
+
+    // Guardar el archivo actualizado
+    const productsStringified = JSON.stringify(products, null, "\t");
+    await fs.promises.writeFile(pathToProducts, productsStringified);
+
+    res.status(200).send({
+      message: "Producto eliminado con éxito",
+      data: deletedProduct[0],
+    });
+  } catch (error) {
+    error.message = `Error en DELETE /api/products/${req.params.id}.\n${error.message}`;
+    next(error);
+  }
+});
+
 export default ProductsRouter;
-
-// // Endpoint para obtener todos los productos.
-// ProductsRouter.get("/", async (req, res) => {
-//   try {
-//     const productsString = await fs.promises.readFile(pathToProducts, "utf-8");
-//     const products = JSON.parse(productsString);
-//     res.status(200).json({ products });
-//   } catch (error) {
-//     console.error("❌ Error al leer productos:", error.message);
-//     res.status(500).json({
-//       error: "No se pudieron obtener los productos.",
-//       details: error.message,
-//     });
-//   }
-// });
-
-// // Endpoint para generar un nuevo registro
-// ProductsRouter.post("/", validationInputProducts, async (req, res) => {
-//   try {
-//     // Leer productos actuales desde el archivo
-//     const productsString = await fs.promises.readFile(pathToProducts, "utf-8");
-//     const products = JSON.parse(productsString);
-
-//     // Extraer campos del body
-//     const {
-//       descripcion,
-//       codigo,
-//       categoria,
-//       marca,
-//       precio,
-//       precio_compra,
-//       cantidad,
-//       unidad_medida,
-//       estado,
-//       fecha_registro,
-//       imagen_url,
-//       proveedor,
-//     } = req.body;
-
-//     // Validación de respaldo (en caso de que el middleware falle)
-//     if (
-//       !descripcion || !codigo || !categoria || !marca ||
-//       precio == null || precio_compra == null ||
-//       cantidad == null || !unidad_medida || !estado ||
-//       !fecha_registro || !imagen_url || !proveedor
-//     ) {
-//       return res.status(400).json({ error: "Todos los campos son obligatorios." });
-//     }
-
-//     // Crear nuevo producto con ID único
-//     const product = {
-//       id: uuidv4(),
-//       descripcion,
-//       codigo,
-//       categoria,
-//       marca,
-//       precio,
-//       precio_compra,
-//       cantidad,
-//       unidad_medida,
-//       estado,
-//       fecha_registro,
-//       imagen_url,
-//       proveedor,
-//     };
-
-//     // Agregar a la lista
-//     products.push(product);
-
-//     // Guardar el nuevo archivo
-//     const updatedData = JSON.stringify(products, null, 2);
-//     await fs.promises.writeFile(pathToProducts, updatedData);
-
-//     // Respuesta exitosa
-//     res.status(201).json({
-//       message: "✅ Producto creado correctamente.",
-//       data: product,
-//     });
-
-//   } catch (error) {
-//     console.error("❌ Error al crear el producto:", error);
-//     res.status(500).json({
-//       error: "No se pudo crear el producto.",
-//       details: error.message,
-//     });
-//   }
-// });
