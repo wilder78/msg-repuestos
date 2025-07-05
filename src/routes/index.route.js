@@ -1,5 +1,6 @@
 import { Router } from "express";
 import ProductsRouter from "./products.route.js";
+// puedes agregar más routers aquí
 
 const router = Router();
 
@@ -7,3 +8,5 @@ const router = Router();
 router.use("/", ProductsRouter);
 
 export default router;
+
+
