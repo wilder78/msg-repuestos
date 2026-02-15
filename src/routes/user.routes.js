@@ -7,20 +7,21 @@ import {
   updateUser,
   deleteUser,
   loginUser
-} from "../controllers/user.controllers.js";
+} from "../controllers/user.controllers.js"; // <--- Confirmado con "s"
+import { verifyToken } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// Auth & Registro
+// Auth & Registro (Públicos)
 router.post("/login", loginUser);
 router.post("/register", createUser);
 
-// CRUD Administrativo
-router.get("/", getAllUsers);
-router.get("/email/:email", getUserByEmail);
-router.get("/:id", getUserById); // Movido después de /email para evitar conflictos
-router.put("/:idUsuario", updateUser);
-router.delete("/:id", deleteUser);
+// CRUD Administrativo (Protegidos)
+router.get("/", verifyToken, getAllUsers);
+router.get("/email/:email", verifyToken, getUserByEmail);
+router.get("/:id", verifyToken, getUserById); 
+router.put("/:idUsuario", verifyToken, updateUser);
+router.delete("/:id", verifyToken, deleteUser);
 
 export default router;
 
@@ -33,20 +34,19 @@ export default router;
 //   createUser,
 //   updateUser,
 //   deleteUser,
-//   loginUser // 👈 Agregamos el login que decodificamos antes
-// } from "../controllers/user.controller.js";
+//   loginUser
+// } from "../controllers/user.controllers.js";
 
 // const router = express.Router();
 
-// // 🔐 Rutas de Autenticación
+// // Auth & Registro
 // router.post("/login", loginUser);
-// router.post("/register", createUser); // Es el mismo createUser pero con nombre semántico
+// router.post("/register", createUser);
 
-// // 👥 Rutas de Administración de Usuarios
+// // CRUD Administrativo
 // router.get("/", getAllUsers);
-// router.get("/:id", getUserById);
 // router.get("/email/:email", getUserByEmail);
-// router.post("/", createUser);
+// router.get("/:id", getUserById); // Movido después de /email para evitar conflictos
 // router.put("/:idUsuario", updateUser);
 // router.delete("/:id", deleteUser);
 
