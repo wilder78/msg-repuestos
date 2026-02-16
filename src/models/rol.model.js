@@ -1,6 +1,6 @@
 export default (sequelize, DataTypes) => {
   const Rol = sequelize.define(
-    "Rol",
+    "Rol", // Nombre del modelo
     {
       idRol: {
         type: DataTypes.INTEGER,
@@ -15,28 +15,33 @@ export default (sequelize, DataTypes) => {
         field: "nombre_rol",
       },
       idEstado: {
-        type: DataTypes.TINYINT(1),
+        // Cambiado a INTEGER si TINYINT da problemas en ciertos dialectos
+        type: DataTypes.INTEGER, 
         allowNull: false,
         defaultValue: 1,
         field: "id_estado",
       },
     },
     {
-      tableName: "roles", // <--- CAMBIO AQUÍ: Nombre exacto de tu tabla en la DB
+      tableName: "roles", // Asegúrate que en tu DB la tabla se llame 'roles'
       timestamps: false,
-      freezeTableName: true, // Esto evita que Sequelize intente pluralizar por su cuenta
-    },
+      freezeTableName: true,
+    }
   );
 
   Rol.associate = (models) => {
-    Rol.hasMany(models.Usuario, {
-      foreignKey: "idRol",
-      as: "usuarios",
-    });
+    // Asegúrate de que el modelo Usuario esté importado con el nombre exacto "Usuario"
+    if (models.Usuario) {
+      Rol.hasMany(models.Usuario, {
+        foreignKey: "id_rol", // Usamos el nombre de la columna en la DB
+        as: "usuarios",
+      });
+    }
   };
 
   return Rol;
 };
+
 
 // export default (sequelize, DataTypes) => {
 //   const Rol = sequelize.define(
@@ -58,14 +63,14 @@ export default (sequelize, DataTypes) => {
 //         type: DataTypes.TINYINT(1),
 //         allowNull: false,
 //         defaultValue: 1,
-//         field: "id_estado", // Según tu imagen, es tinyint(1)
+//         field: "id_estado",
 //       },
 //     },
 //     {
-//       tableName: "rol",
+//       tableName: "roles", // <--- CAMBIO AQUÍ: Nombre exacto de tu tabla en la DB
 //       timestamps: false,
-//       freezeTableName: true,
-//     }
+//       freezeTableName: true, // Esto evita que Sequelize intente pluralizar por su cuenta
+//     },
 //   );
 
 //   Rol.associate = (models) => {
