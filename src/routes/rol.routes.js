@@ -1,7 +1,7 @@
 import express from "express";
 import {
   getAllRoles,
-  getRolById, // Añadido para soportar GET /api/rol/:id
+  getRolById,
   createRol,
   updateRol,
   deleteRol,
@@ -12,19 +12,19 @@ const router = express.Router();
 
 // --- RUTAS DE ROLES ---
 
-// Obtener todos los roles: GET http://localhost:8080/api/rol
+// Obtener todos los roles
 router.get("/", verifyToken, getAllRoles);
 
-// Obtener un rol por ID: GET http://localhost:8080/api/rol/1
+// Obtener un rol por ID
 router.get("/:id", verifyToken, getRolById); 
 
-// Crear un rol: POST http://localhost:8080/api/rol
+// Crear un rol
 router.post("/", verifyToken, createRol);
 
-// Actualizar un rol: PUT http://localhost:8080/api/rol/1
+// Actualizar un rol
 router.put("/:id", verifyToken, updateRol);
 
-// Eliminar (desactivar) un rol: DELETE http://localhost:8080/api/rol/1
+// Eliminar (desactivar) un rol
 router.delete("/:id", verifyToken, deleteRol);
 
 export default router;
