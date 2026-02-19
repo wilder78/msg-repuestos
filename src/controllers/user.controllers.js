@@ -4,11 +4,16 @@ import db from "../models/index.model.js";
 
 const { Usuario } = db;
 
-// 1. Crear usuario (Registro)
+// Helper para limpiar campos sensibles/duplicados del usuario
+const sanitizeUser = (user) => {
+  const { passwordHash, id_rol, ...clean } = user.toJSON ? user.toJSON() : user;
+  return clean;
+};
+
+// 1. Crear usuario
 export const createUser = async (req, res) => {
   try {
-    const { nombreUsuario, email, password, idEstado, idRol, idCliente } =
-      req.body;
+    const { nombreUsuario, email, password, idEstado, idRol, idCliente } = req.body;
 
     if (!nombreUsuario || !email || !password) {
       return res.status(400).json({
@@ -27,12 +32,9 @@ export const createUser = async (req, res) => {
       idCliente: idCliente ?? null,
     });
 
-    const userResponse = newUser.toJSON();
-    delete userResponse.passwordHash;
-
     return res.status(201).json({
       message: "Usuario creado exitosamente",
-      data: userResponse,
+      data: sanitizeUser(newUser),
     });
   } catch (error) {
     console.error("❌ Error al crear usuario:", error);
@@ -47,7 +49,7 @@ export const createUser = async (req, res) => {
   }
 };
 
-// 2. Login (Inicio de sesión por EMAIL)
+// 2. Login
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -56,7 +58,6 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ error: "Email y contraseña requeridos." });
     }
 
-    // SIN INCLUDES - solo busca el usuario
     const user = await Usuario.findOne({
       where: { email: email.toLowerCase().trim() },
     });
@@ -72,12 +73,9 @@ export const loginUser = async (req, res) => {
     }
 
     const token = jwt.sign(
-      {
-        idUsuario: user.idUsuario,
-        idRol: user.idRol, // Solo el ID
-      },
+      { idUsuario: user.idUsuario, idRol: user.idRol },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES || "1h" },
+      { expiresIn: process.env.JWT_EXPIRES || "1h" }
     );
 
     return res.status(200).json({
@@ -87,8 +85,8 @@ export const loginUser = async (req, res) => {
         id: user.idUsuario,
         nombre: user.nombreUsuario,
         email: user.email,
-        idRol: user.idRol, // Solo el ID
-        idEstado: user.idEstado, // Solo el ID
+        idRol: user.idRol,
+        idEstado: user.idEstado,
       },
     });
   } catch (error) {
@@ -101,12 +99,12 @@ export const loginUser = async (req, res) => {
 export const getAllUsers = async (req, res) => {
   try {
     const users = await Usuario.findAll({
-      attributes: { exclude: ["passwordHash"] },
+      attributes: { exclude: ["passwordHash", "password_hash"] },
     });
 
     return res.status(200).json({
       message: "Usuarios obtenidos exitosamente",
-      data: users,
+      data: users.map(sanitizeUser),
     });
   } catch (error) {
     console.error("❌ Error al obtener usuarios:", error);
@@ -120,7 +118,7 @@ export const getUserById = async (req, res) => {
     const { id } = req.params;
 
     const user = await Usuario.findByPk(id, {
-      attributes: { exclude: ["passwordHash"] },
+      attributes: { exclude: ["passwordHash", "password_hash"] },
     });
 
     if (!user) {
@@ -129,7 +127,7 @@ export const getUserById = async (req, res) => {
 
     return res.status(200).json({
       message: "Usuario encontrado",
-      data: user,
+      data: sanitizeUser(user),
     });
   } catch (error) {
     console.error("❌ Error al obtener usuario:", error);
@@ -144,7 +142,7 @@ export const getUserByEmail = async (req, res) => {
 
     const user = await Usuario.findOne({
       where: { email: email.toLowerCase().trim() },
-      attributes: { exclude: ["passwordHash"] },
+      attributes: { exclude: ["passwordHash", "password_hash"] },
     });
 
     if (!user) {
@@ -153,7 +151,7 @@ export const getUserByEmail = async (req, res) => {
 
     return res.status(200).json({
       message: "Usuario encontrado",
-      data: user,
+      data: sanitizeUser(user),
     });
   } catch (error) {
     console.error("❌ Error al obtener usuario:", error);
@@ -174,24 +172,17 @@ export const updateUser = async (req, res) => {
     }
 
     const updateData = {};
-
     if (nombreUsuario) updateData.nombreUsuario = nombreUsuario;
     if (email) updateData.email = email.toLowerCase().trim();
     if (idEstado) updateData.idEstado = idEstado;
     if (idRol) updateData.idRol = idRol;
-
-    if (password) {
-      updateData.passwordHash = await bcrypt.hash(password, 10);
-    }
+    if (password) updateData.passwordHash = await bcrypt.hash(password, 10);
 
     await user.update(updateData);
 
-    const userResponse = user.toJSON();
-    delete userResponse.passwordHash;
-
     return res.status(200).json({
       message: "Usuario actualizado exitosamente",
-      data: userResponse,
+      data: sanitizeUser(user),
     });
   } catch (error) {
     console.error("❌ Error al actualizar usuario:", error);
@@ -206,7 +197,7 @@ export const updateUser = async (req, res) => {
   }
 };
 
-// 7. Eliminar usuario (Soft delete - cambiar id_estado a 2)
+// 7. Eliminar usuario (Soft delete)
 export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -217,7 +208,6 @@ export const deleteUser = async (req, res) => {
       return res.status(404).json({ error: "Usuario no encontrado." });
     }
 
-    // Soft delete: cambiar estado a inactivo (2)
     await user.update({ idEstado: 2 });
 
     return res.status(200).json({
@@ -229,11 +219,13 @@ export const deleteUser = async (req, res) => {
   }
 };
 
+
+
 // import bcrypt from "bcrypt";
 // import jwt from "jsonwebtoken";
 // import db from "../models/index.model.js";
 
-// const { Usuario, Estado, Rol } = db;
+// const { Usuario } = db;
 
 // // 1. Crear usuario (Registro)
 // export const createUser = async (req, res) => {
@@ -241,14 +233,12 @@ export const deleteUser = async (req, res) => {
 //     const { nombreUsuario, email, password, idEstado, idRol, idCliente } =
 //       req.body;
 
-//     // Validación de campos requeridos
 //     if (!nombreUsuario || !email || !password) {
 //       return res.status(400).json({
 //         error: "Faltan campos obligatorios (nombreUsuario, email, password).",
 //       });
 //     }
 
-//     // Encriptación de contraseña
 //     const hashedPassword = await bcrypt.hash(password, 10);
 
 //     const newUser = await Usuario.create({
@@ -260,7 +250,6 @@ export const deleteUser = async (req, res) => {
 //       idCliente: idCliente ?? null,
 //     });
 
-//     // Limpiamos la respuesta para no enviar el hash
 //     const userResponse = newUser.toJSON();
 //     delete userResponse.passwordHash;
 
@@ -290,12 +279,9 @@ export const deleteUser = async (req, res) => {
 //       return res.status(400).json({ error: "Email y contraseña requeridos." });
 //     }
 
+//     // SIN INCLUDES - solo busca el usuario
 //     const user = await Usuario.findOne({
 //       where: { email: email.toLowerCase().trim() },
-//       include: [
-//         { model: Estado, as: "estado", attributes: ["nombre"] },
-//         { model: Rol, as: "rol", attributes: ["nombreRol"] },
-//       ],
 //     });
 
 //     if (!user) {
@@ -311,7 +297,7 @@ export const deleteUser = async (req, res) => {
 //     const token = jwt.sign(
 //       {
 //         idUsuario: user.idUsuario,
-//         rol: user.rol?.nombreRol,
+//         idRol: user.idRol, // Solo el ID
 //       },
 //       process.env.JWT_SECRET,
 //       { expiresIn: process.env.JWT_EXPIRES || "1h" },
@@ -324,8 +310,8 @@ export const deleteUser = async (req, res) => {
 //         id: user.idUsuario,
 //         nombre: user.nombreUsuario,
 //         email: user.email,
-//         rol: user.rol?.nombreRol,
-//         estado: user.estado?.nombre,
+//         idRol: user.idRol, // Solo el ID
+//         idEstado: user.idEstado, // Solo el ID
 //       },
 //     });
 //   } catch (error) {
@@ -338,11 +324,7 @@ export const deleteUser = async (req, res) => {
 // export const getAllUsers = async (req, res) => {
 //   try {
 //     const users = await Usuario.findAll({
-//       attributes: { exclude: ["passwordHash"] }, // No enviamos el hash
-//       include: [
-//         { model: Estado, as: "estado", attributes: ["nombre"] },
-//         { model: Rol, as: "rol", attributes: ["nombreRol"] },
-//       ],
+//       attributes: { exclude: ["passwordHash"] },
 //     });
 
 //     return res.status(200).json({
@@ -362,10 +344,6 @@ export const deleteUser = async (req, res) => {
 
 //     const user = await Usuario.findByPk(id, {
 //       attributes: { exclude: ["passwordHash"] },
-//       include: [
-//         { model: Estado, as: "estado", attributes: ["nombre"] },
-//         { model: Rol, as: "rol", attributes: ["nombreRol"] },
-//       ],
 //     });
 
 //     if (!user) {
@@ -390,10 +368,6 @@ export const deleteUser = async (req, res) => {
 //     const user = await Usuario.findOne({
 //       where: { email: email.toLowerCase().trim() },
 //       attributes: { exclude: ["passwordHash"] },
-//       include: [
-//         { model: Estado, as: "estado", attributes: ["nombre"] },
-//         { model: Rol, as: "rol", attributes: ["nombreRol"] },
-//       ],
 //     });
 
 //     if (!user) {
@@ -422,7 +396,6 @@ export const deleteUser = async (req, res) => {
 //       return res.status(404).json({ error: "Usuario no encontrado." });
 //     }
 
-//     // Preparamos los datos a actualizar
 //     const updateData = {};
 
 //     if (nombreUsuario) updateData.nombreUsuario = nombreUsuario;
@@ -430,14 +403,12 @@ export const deleteUser = async (req, res) => {
 //     if (idEstado) updateData.idEstado = idEstado;
 //     if (idRol) updateData.idRol = idRol;
 
-//     // Si se proporciona una nueva contraseña, la encriptamos
 //     if (password) {
 //       updateData.passwordHash = await bcrypt.hash(password, 10);
 //     }
 
 //     await user.update(updateData);
 
-//     // Respuesta sin el hash
 //     const userResponse = user.toJSON();
 //     delete userResponse.passwordHash;
 
@@ -458,7 +429,7 @@ export const deleteUser = async (req, res) => {
 //   }
 // };
 
-// // 7. Eliminar usuario (Soft delete recomendado)
+// // 7. Eliminar usuario (Soft delete - cambiar id_estado a 2)
 // export const deleteUser = async (req, res) => {
 //   try {
 //     const { id } = req.params;
@@ -469,10 +440,8 @@ export const deleteUser = async (req, res) => {
 //       return res.status(404).json({ error: "Usuario no encontrado." });
 //     }
 
-//     // Soft delete: cambiar estado a "Inactivo" (idEstado = 2, ajusta según tu BD)
+//     // Soft delete: cambiar estado a inactivo (2)
 //     await user.update({ idEstado: 2 });
-
-//     // Si prefieres borrado físico, usa: await user.destroy();
 
 //     return res.status(200).json({
 //       message: "Usuario desactivado exitosamente",

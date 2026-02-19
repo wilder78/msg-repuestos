@@ -54,12 +54,14 @@ export default (sequelize, DataTypes) => {
       tableName: "usuario",
       timestamps: false,
       freezeTableName: true,
-    }
+    },
   );
 
-  // ASOCIACIONES ELIMINADAS - solo dejamos el modelo sin relaciones
   User.associate = (models) => {
-    // Vacío por ahora, o elimina esta función completamente
+    User.belongsTo(models.Rol, {
+      foreignKey: "id_rol",
+      as: "rol",
+    });
   };
 
   return User;
@@ -80,9 +82,8 @@ export default (sequelize, DataTypes) => {
 //         allowNull: false,
 //         field: "nombre_usuario",
 //       },
-//       // 📧 NUEVA COLUMNA SEGÚN TU CAPTURA
 //       email: {
-//         type: DataTypes.STRING(125), // Ajustado a varchar(125) como tu imagen
+//         type: DataTypes.STRING(125),
 //         allowNull: false,
 //         unique: true,
 //         validate: {
@@ -125,12 +126,9 @@ export default (sequelize, DataTypes) => {
 //     }
 //   );
 
+//   // ASOCIACIONES ELIMINADAS - solo dejamos el modelo sin relaciones
 //   User.associate = (models) => {
-//     User.belongsTo(models.Rol, { foreignKey: "id_rol", as: "rol" });
-//     User.belongsTo(models.Estado, { foreignKey: "id_estado", as: "estado" });
-//     if (models.Cliente) {
-//       User.belongsTo(models.Cliente, { foreignKey: "id_cliente", as: "cliente" });
-//     }
+//     // Vacío por ahora, o elimina esta función completamente
 //   };
 
 //   return User;
