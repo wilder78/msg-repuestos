@@ -21,12 +21,12 @@ export default (sequelize, DataTypes) => {
       nombre: { // Mantenemos 'nombre' en JS
         type: DataTypes.STRING(100),
         allowNull: false,
-        field: "nombres", // ✅ Cambiado de 'nombre' a 'nombres'
+        field: "nombres", 
       },
       apellido: {
         type: DataTypes.STRING(100),
         allowNull: false,
-        field: "apellidos", // ✅ Cambiado de 'apellido' a 'apellidos'
+        field: "apellidos",
       },
       telefono: {
         type: DataTypes.STRING(15),
@@ -44,7 +44,7 @@ export default (sequelize, DataTypes) => {
         field: "id_usuario",
       },
       disponibilidad: {
-        type: DataTypes.BOOLEAN, // tinyint(1) en MySQL es Boolean en Sequelize
+        type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: 1,
         field: "disponibilidad",
@@ -58,7 +58,7 @@ export default (sequelize, DataTypes) => {
     },
     {
       tableName: "empleado",
-      timestamps: false, // Tu tabla no parece tener 'createdAt'/'updatedAt' en la imagen
+      timestamps: false,
       freezeTableName: true,
     }
   );
