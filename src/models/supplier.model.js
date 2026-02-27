@@ -1,6 +1,6 @@
 export default (sequelize, DataTypes) => {
   const Supplier = sequelize.define(
-    "proveedor",
+    "Supplier", // Nombre interno del modelo
     {
       idProveedor: {
         type: DataTypes.INTEGER,
@@ -12,16 +12,14 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
         field: "id_tipo_documento",
-        // Eliminamos la referencia explícita aquí para que Sequelize 
-        // la maneje únicamente a través de Supplier.associate
       },
       numeroDocumento: {
-        type: DataTypes.STRING(20),
+        type: DataTypes.STRING(15), // Ajustado a varchar(15) según tu DB
         allowNull: false,
         unique: true,
         field: "numero_documento",
         validate: {
-          notEmpty: true // Evita que se envíen strings vacíos ""
+          notEmpty: true 
         }
       },
       nombreEmpresa: {
@@ -38,12 +36,12 @@ export default (sequelize, DataTypes) => {
         field: "contacto",
       },
       telefono: {
-        type: DataTypes.STRING(25),
+        type: DataTypes.STRING(15), // Ajustado a varchar(15) según tu DB
         allowNull: true,
         field: "telefono",
       },
       email: {
-        type: DataTypes.STRING(125),
+        type: DataTypes.STRING(100), // Ajustado a varchar(100) según tu DB
         allowNull: false,
         validate: {
           isEmail: true,
@@ -52,26 +50,26 @@ export default (sequelize, DataTypes) => {
         field: "email",
       },
       condicionesComerciales: {
-        type: DataTypes.TEXT,
+        type: DataTypes.STRING(500), // Ajustado a varchar(500) según tu DB
         allowNull: true,
         field: "condiciones_comerciales",
       },
       activo: {
-        type: DataTypes.BOOLEAN,
+        type: DataTypes.BOOLEAN, // Mapea con tinyint(1) de tu DB
         allowNull: false,
         defaultValue: true,
         field: "activo",
       },
     },
     {
-      tableName: "proveedor",
+      // CAMBIO PRINCIPAL: Ahora apunta a la tabla que ya existe y tiene relaciones
+      tableName: "proveedores", 
       timestamps: false,
-      freezeTableName: true,
+      freezeTableName: true, // Evita que Sequelize intente cambiar el nombre
     }
   );
 
   Supplier.associate = (models) => {
-    // Es vital que models.TipoDocumento esté definido en el index de modelos
     Supplier.belongsTo(models.TipoDocumento, {
       foreignKey: "id_tipo_documento",
       as: "tipoDocumento", 
@@ -80,6 +78,7 @@ export default (sequelize, DataTypes) => {
 
   return Supplier;
 };
+
 
 // export default (sequelize, DataTypes) => {
 //   const Supplier = sequelize.define(
@@ -95,21 +94,25 @@ export default (sequelize, DataTypes) => {
 //         type: DataTypes.INTEGER,
 //         allowNull: false,
 //         field: "id_tipo_documento",
-//         references: {
-//           model: "tipo_documento", // Nombre de la tabla física
-//           key: "id_tipo_documento",
-//         },
+//         // Eliminamos la referencia explícita aquí para que Sequelize 
+//         // la maneje únicamente a través de Supplier.associate
 //       },
 //       numeroDocumento: {
 //         type: DataTypes.STRING(20),
 //         allowNull: false,
 //         unique: true,
 //         field: "numero_documento",
+//         validate: {
+//           notEmpty: true // Evita que se envíen strings vacíos ""
+//         }
 //       },
 //       nombreEmpresa: {
 //         type: DataTypes.STRING(150),
 //         allowNull: false,
 //         field: "nombre_empresa",
+//         validate: {
+//           notEmpty: true
+//         }
 //       },
 //       contacto: {
 //         type: DataTypes.STRING(100),
@@ -126,6 +129,7 @@ export default (sequelize, DataTypes) => {
 //         allowNull: false,
 //         validate: {
 //           isEmail: true,
+//           notNull: { msg: "El email no puede ser nulo" }
 //         },
 //         field: "email",
 //       },
@@ -148,11 +152,11 @@ export default (sequelize, DataTypes) => {
 //     }
 //   );
 
-//   // Definición de asociaciones
 //   Supplier.associate = (models) => {
+//     // Es vital que models.TipoDocumento esté definido en el index de modelos
 //     Supplier.belongsTo(models.TipoDocumento, {
 //       foreignKey: "id_tipo_documento",
-//       as: "tipoDocumento", // Alias para usar en los includes de Sequelize
+//       as: "tipoDocumento", 
 //     });
 //   };
 

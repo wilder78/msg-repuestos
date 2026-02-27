@@ -5,9 +5,9 @@ const supplierController = {
   // 1. Obtener todos los proveedores
   getAllSuppliers: async (req, res = response) => {
     try {
-      // Verificación de seguridad: ¿Está el modelo cargado?
+      // Verificación de seguridad
       if (!db.Supplier) {
-        throw new Error("El modelo Supplier no está inicializado en la base de datos.");
+        throw new Error("El modelo Supplier no está inicializado.");
       }
 
       const suppliers = await db.Supplier.findAll({
@@ -18,6 +18,8 @@ const supplierController = {
             attributes: ["sigla", "descripcion"],
           },
         ],
+        // Opcional: Ordenar por ID para consistencia visual
+        order: [['idProveedor', 'ASC']] 
       });
       return res.status(200).json(suppliers);
     } catch (error) {
@@ -57,7 +59,6 @@ const supplierController = {
   // 3. Crear un nuevo proveedor
   createSupplier: async (req, res = response) => {
     try {
-      // Validamos que el body no venga vacío (evita notNull Violations tontas)
       if (!req.body || Object.keys(req.body).length === 0) {
         return res.status(400).json({
           status: "error",
@@ -65,21 +66,23 @@ const supplierController = {
         });
       }
 
+      // El modelo se encarga de mapear a la tabla 'proveedores'
       const newSupplier = await db.Supplier.create(req.body);
+      
       return res.status(201).json({
         status: "success",
         message: "Proveedor creado con éxito",
         data: newSupplier,
       });
     } catch (error) {
-      // Manejo específico para errores de Sequelize (UniqueConstraint, NotNull, etc.)
+      // Manejo de errores de validación de Sequelize (ej: email inválido)
       const errorMsg = error.name === 'SequelizeValidationError' 
         ? error.errors.map(e => e.message).join(", ")
         : error.message;
 
       return res.status(400).json({ 
         status: "error",
-        message: "No se pudo crear el proveedor. Verifique los datos enviados.",
+        message: "No se pudo crear el proveedor.",
         error: errorMsg 
       });
     }
@@ -89,14 +92,17 @@ const supplierController = {
   updateSupplier: async (req, res = response) => {
     const { id } = req.params;
     try {
-      const [updatedRows] = await db.Supplier.update(req.body, {
+      // Filtramos el body para evitar que actualicen campos sensibles o inexistentes
+      const { idProveedor, ...dataToUpdate } = req.body;
+
+      const [updatedRows] = await db.Supplier.update(dataToUpdate, {
         where: { idProveedor: id },
       });
 
       if (updatedRows === 0) {
         return res.status(404).json({ 
           status: "error",
-          message: "Proveedor no encontrado o no hubo cambios en los datos." 
+          message: "Proveedor no encontrado o sin cambios." 
         });
       }
 
@@ -115,18 +121,19 @@ const supplierController = {
     }
   },
 
-  // 5. Eliminar (Desactivar) proveedor
+  // 5. Eliminar (Desactivar) proveedor - Soft Delete
   deleteSupplier: async (req, res = response) => {
     const { id } = req.params;
     try {
-      const result = await db.Supplier.update({ activo: false }, {
+      // Usamos el campo 'activo' definido en el modelo
+      const [result] = await db.Supplier.update({ activo: false }, {
         where: { idProveedor: id }
       });
 
-      if (result[0] === 0) {
+      if (result === 0) {
         return res.status(404).json({ 
           status: "error",
-          message: "No se encontró el proveedor para desactivar." 
+          message: "No se encontró el proveedor." 
         });
       }
 
@@ -146,6 +153,7 @@ const supplierController = {
 
 export default supplierController;
 
+
 // import { response } from "express";
 // import db from "../models/index.model.js"; 
 
@@ -153,7 +161,11 @@ export default supplierController;
 //   // 1. Obtener todos los proveedores
 //   getAllSuppliers: async (req, res = response) => {
 //     try {
-//       // Accedemos directamente a db.Supplier dentro del scope de la función
+//       // Verificación de seguridad: ¿Está el modelo cargado?
+//       if (!db.Supplier) {
+//         throw new Error("El modelo Supplier no está inicializado en la base de datos.");
+//       }
+
 //       const suppliers = await db.Supplier.findAll({
 //         include: [
 //           {
@@ -163,9 +175,11 @@ export default supplierController;
 //           },
 //         ],
 //       });
-//       res.json(suppliers);
+//       return res.status(200).json(suppliers);
 //     } catch (error) {
-//       res.status(500).json({ 
+//       console.error("Error en getAllSuppliers:", error);
+//       return res.status(500).json({ 
+//         status: "error",
 //         message: "Error al obtener proveedores", 
 //         error: error.message 
 //       });
@@ -179,25 +193,51 @@ export default supplierController;
 //       const supplier = await db.Supplier.findByPk(id, {
 //         include: [{ model: db.TipoDocumento, as: "tipoDocumento" }],
 //       });
+      
 //       if (!supplier) {
-//         return res.status(404).json({ message: "Proveedor no encontrado" });
+//         return res.status(404).json({ 
+//           status: "error",
+//           message: `Proveedor con ID ${id} no encontrado` 
+//         });
 //       }
-//       res.json(supplier);
+//       return res.json(supplier);
 //     } catch (error) {
-//       res.status(500).json({ message: "Error al obtener el proveedor", error: error.message });
+//       return res.status(500).json({ 
+//         status: "error",
+//         message: "Error al obtener el proveedor", 
+//         error: error.message 
+//       });
 //     }
 //   },
 
 //   // 3. Crear un nuevo proveedor
 //   createSupplier: async (req, res = response) => {
 //     try {
+//       // Validamos que el body no venga vacío (evita notNull Violations tontas)
+//       if (!req.body || Object.keys(req.body).length === 0) {
+//         return res.status(400).json({
+//           status: "error",
+//           message: "El cuerpo de la solicitud no puede estar vacío."
+//         });
+//       }
+
 //       const newSupplier = await db.Supplier.create(req.body);
-//       res.status(201).json({
+//       return res.status(201).json({
+//         status: "success",
 //         message: "Proveedor creado con éxito",
 //         data: newSupplier,
 //       });
 //     } catch (error) {
-//       res.status(400).json({ message: "Error al crear proveedor", error: error.message });
+//       // Manejo específico para errores de Sequelize (UniqueConstraint, NotNull, etc.)
+//       const errorMsg = error.name === 'SequelizeValidationError' 
+//         ? error.errors.map(e => e.message).join(", ")
+//         : error.message;
+
+//       return res.status(400).json({ 
+//         status: "error",
+//         message: "No se pudo crear el proveedor. Verifique los datos enviados.",
+//         error: errorMsg 
+//       });
 //     }
 //   },
 
@@ -205,16 +245,29 @@ export default supplierController;
 //   updateSupplier: async (req, res = response) => {
 //     const { id } = req.params;
 //     try {
-//       const [updated] = await db.Supplier.update(req.body, {
+//       const [updatedRows] = await db.Supplier.update(req.body, {
 //         where: { idProveedor: id },
 //       });
-//       if (updated === 0) {
-//         return res.status(404).json({ message: "Proveedor no encontrado o sin cambios" });
+
+//       if (updatedRows === 0) {
+//         return res.status(404).json({ 
+//           status: "error",
+//           message: "Proveedor no encontrado o no hubo cambios en los datos." 
+//         });
 //       }
+
 //       const updatedSupplier = await db.Supplier.findByPk(id);
-//       res.json({ message: "Proveedor actualizado", data: updatedSupplier });
+//       return res.json({ 
+//         status: "success",
+//         message: "Proveedor actualizado con éxito", 
+//         data: updatedSupplier 
+//       });
 //     } catch (error) {
-//       res.status(500).json({ message: "Error al actualizar", error: error.message });
+//       return res.status(500).json({ 
+//         status: "error",
+//         message: "Error al actualizar el proveedor", 
+//         error: error.message 
+//       });
 //     }
 //   },
 
@@ -222,12 +275,27 @@ export default supplierController;
 //   deleteSupplier: async (req, res = response) => {
 //     const { id } = req.params;
 //     try {
-//       await db.Supplier.update({ activo: false }, {
+//       const result = await db.Supplier.update({ activo: false }, {
 //         where: { idProveedor: id }
 //       });
-//       res.json({ message: "Proveedor desactivado correctamente" });
+
+//       if (result[0] === 0) {
+//         return res.status(404).json({ 
+//           status: "error",
+//           message: "No se encontró el proveedor para desactivar." 
+//         });
+//       }
+
+//       return res.json({ 
+//         status: "success",
+//         message: "Proveedor desactivado correctamente" 
+//       });
 //     } catch (error) {
-//       res.status(500).json({ message: "Error al eliminar", error: error.message });
+//       return res.status(500).json({ 
+//         status: "error",
+//         message: "Error al desactivar el proveedor", 
+//         error: error.message 
+//       });
 //     }
 //   },
 // };

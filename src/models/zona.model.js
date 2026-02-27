@@ -1,6 +1,6 @@
 export default (sequelize, DataTypes) => {
   const Zona = sequelize.define(
-    "zona",
+    "Zona", // Nombre del modelo en el código
     {
       idZona: {
         type: DataTypes.INTEGER,
@@ -11,7 +11,7 @@ export default (sequelize, DataTypes) => {
       nombreZona: {
         type: DataTypes.STRING(100),
         allowNull: false,
-        field: "Nombre_Zona", 
+        field: "nombre_zona", // Ajustado a snake_case para consistencia
         validate: {
           notEmpty: { msg: "El nombre de la zona es obligatorio" }
         }
@@ -19,27 +19,28 @@ export default (sequelize, DataTypes) => {
       descripcion: {
         type: DataTypes.STRING(255),
         allowNull: true,
-        field: "Descripcion", 
+        field: "descripcion", 
       },
       activo: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: true,
-        field: "Activo", 
+        field: "activo", 
       },
     },
     {
-      tableName: "zona",
+      // CONEXIÓN CLAVE: Apuntamos a la tabla pluralizada de la base de datos
+      tableName: "zonas", 
       timestamps: false,
-      freezeTableName: true,
+      freezeTableName: true, // Evita que Sequelize intente renombrarla
     }
   );
 
   Zona.associate = (models) => {
-    // COMENTADO HASTA QUE EL ARCHIVO customer.model.js ESTÉ CREADO E IMPORTADO EN EL BARRIL
+    // Aquí puedes añadir las asociaciones cuando tus otros modelos estén listos
     /*
     Zona.hasMany(models.Cliente, {
-      foreignKey: "ID_Zona", 
+      foreignKey: "id_zona", 
       as: "clientes",
     });
     */
@@ -56,12 +57,12 @@ export default (sequelize, DataTypes) => {
 //         type: DataTypes.INTEGER,
 //         primaryKey: true,
 //         autoIncrement: true,
-//         field: "id_zona", // Minúsculas según la imagen
+//         field: "id_zona", 
 //       },
 //       nombreZona: {
 //         type: DataTypes.STRING(100),
 //         allowNull: false,
-//         field: "Nombre_Zona", // CamelCase según la imagen
+//         field: "Nombre_Zona", 
 //         validate: {
 //           notEmpty: { msg: "El nombre de la zona es obligatorio" }
 //         }
@@ -69,13 +70,13 @@ export default (sequelize, DataTypes) => {
 //       descripcion: {
 //         type: DataTypes.STRING(255),
 //         allowNull: true,
-//         field: "Descripcion", // Inicia con mayúscula
+//         field: "Descripcion", 
 //       },
 //       activo: {
 //         type: DataTypes.BOOLEAN,
 //         allowNull: false,
 //         defaultValue: true,
-//         field: "Activo", // Inicia con mayúscula
+//         field: "Activo", 
 //       },
 //     },
 //     {
@@ -86,11 +87,13 @@ export default (sequelize, DataTypes) => {
 //   );
 
 //   Zona.associate = (models) => {
-//     // Relación: Una zona tiene muchos clientes
+//     // COMENTADO HASTA QUE EL ARCHIVO customer.model.js ESTÉ CREADO E IMPORTADO EN EL BARRIL
+//     /*
 //     Zona.hasMany(models.Cliente, {
-//       foreignKey: "ID_Zona", // Debe coincidir con la FK en la tabla cliente
+//       foreignKey: "ID_Zona", 
 //       as: "clientes",
 //     });
+//     */
 //   };
 
 //   return Zona;

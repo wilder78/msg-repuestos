@@ -5,12 +5,19 @@ const zonaController = {
   // 1. Obtener todas las zonas
   getAllZonas: async (req, res = response) => {
     try {
+      // Verificación de seguridad
+      if (!db.Zona) {
+        throw new Error("El modelo Zona no está inicializado.");
+      }
+
       const zonas = await db.Zona.findAll({
-        where: { activo: true } // Opcional: solo traer las activas por defecto
+        // Por defecto traemos todas, pero podrías filtrar por { activo: true } si el frontend lo requiere
+        order: [['idZona', 'ASC']]
       });
-      res.json(zonas);
+      return res.status(200).json(zonas);
     } catch (error) {
-      res.status(500).json({ 
+      console.error("Error en getAllZonas:", error);
+      return res.status(500).json({ 
         status: "error",
         message: "Error al obtener las zonas", 
         error: error.message 
@@ -29,9 +36,9 @@ const zonaController = {
           message: "Zona no encontrada" 
         });
       }
-      res.json(zona);
+      return res.json(zona);
     } catch (error) {
-      res.status(500).json({ 
+      return res.status(500).json({ 
         status: "error",
         message: "Error al obtener la zona", 
         error: error.message 
@@ -42,17 +49,30 @@ const zonaController = {
   // 3. Crear una nueva zona
   createZona: async (req, res = response) => {
     try {
+      // Validación básica de entrada
+      if (!req.body.nombreZona) {
+        return res.status(400).json({
+          status: "error",
+          message: "El nombre de la zona es obligatorio."
+        });
+      }
+
       const nuevaZona = await db.Zona.create(req.body);
-      res.status(201).json({
+      return res.status(201).json({
         status: "success",
         message: "Zona creada con éxito",
         data: nuevaZona,
       });
     } catch (error) {
-      res.status(400).json({ 
+      // Capturamos errores de validación de Sequelize (definidos en el modelo)
+      const errorMsg = error.name === 'SequelizeValidationError' 
+        ? error.errors.map(e => e.message).join(", ")
+        : error.message;
+
+      return res.status(400).json({ 
         status: "error",
-        message: "Error al crear la zona", 
-        error: error.message 
+        message: "No se pudo crear la zona.", 
+        error: errorMsg 
       });
     }
   },
@@ -61,25 +81,28 @@ const zonaController = {
   updateZona: async (req, res = response) => {
     const { id } = req.params;
     try {
-      const [updated] = await db.Zona.update(req.body, {
-        where: { idZona: id }, // Recuerda que en JS es idZona por el mapeo field: 'id_zona'
+      // Evitamos que se intente actualizar el ID
+      const { idZona, ...dataToUpdate } = req.body;
+
+      const [updated] = await db.Zona.update(dataToUpdate, {
+        where: { idZona: id },
       });
       
       if (updated === 0) {
         return res.status(404).json({ 
           status: "error",
-          message: "Zona no encontrada o sin cambios" 
+          message: "Zona no encontrada o sin cambios aplicados." 
         });
       }
       
       const zonaActualizada = await db.Zona.findByPk(id);
-      res.json({ 
+      return res.json({ 
         status: "success",
-        message: "Zona actualizada", 
+        message: "Zona actualizada con éxito", 
         data: zonaActualizada 
       });
     } catch (error) {
-      res.status(500).json({ 
+      return res.status(500).json({ 
         status: "error",
         message: "Error al actualizar la zona", 
         error: error.message 
@@ -91,17 +114,25 @@ const zonaController = {
   deleteZona: async (req, res = response) => {
     const { id } = req.params;
     try {
-      await db.Zona.update({ activo: false }, {
+      const [result] = await db.Zona.update({ activo: false }, {
         where: { idZona: id }
       });
-      res.json({ 
+
+      if (result === 0) {
+        return res.status(404).json({ 
+          status: "error",
+          message: "No se encontró la zona para desactivar." 
+        });
+      }
+
+      return res.json({ 
         status: "success",
         message: "Zona desactivada correctamente" 
       });
     } catch (error) {
-      res.status(500).json({ 
+      return res.status(500).json({ 
         status: "error",
-        message: "Error al eliminar la zona", 
+        message: "Error al desactivar la zona", 
         error: error.message 
       });
     }
@@ -109,3 +140,115 @@ const zonaController = {
 };
 
 export default zonaController;
+
+// import { response } from "express";
+// import db from "../models/index.model.js"; 
+
+// const zonaController = {
+//   // 1. Obtener todas las zonas
+//   getAllZonas: async (req, res = response) => {
+//     try {
+//       const zonas = await db.Zona.findAll({
+//         where: { activo: true } // Opcional: solo traer las activas por defecto
+//       });
+//       res.json(zonas);
+//     } catch (error) {
+//       res.status(500).json({ 
+//         status: "error",
+//         message: "Error al obtener las zonas", 
+//         error: error.message 
+//       });
+//     }
+//   },
+
+//   // 2. Obtener una zona por ID
+//   getZonaById: async (req, res = response) => {
+//     const { id } = req.params;
+//     try {
+//       const zona = await db.Zona.findByPk(id);
+//       if (!zona) {
+//         return res.status(404).json({ 
+//           status: "error",
+//           message: "Zona no encontrada" 
+//         });
+//       }
+//       res.json(zona);
+//     } catch (error) {
+//       res.status(500).json({ 
+//         status: "error",
+//         message: "Error al obtener la zona", 
+//         error: error.message 
+//       });
+//     }
+//   },
+
+//   // 3. Crear una nueva zona
+//   createZona: async (req, res = response) => {
+//     try {
+//       const nuevaZona = await db.Zona.create(req.body);
+//       res.status(201).json({
+//         status: "success",
+//         message: "Zona creada con éxito",
+//         data: nuevaZona,
+//       });
+//     } catch (error) {
+//       res.status(400).json({ 
+//         status: "error",
+//         message: "Error al crear la zona", 
+//         error: error.message 
+//       });
+//     }
+//   },
+
+//   // 4. Actualizar zona
+//   updateZona: async (req, res = response) => {
+//     const { id } = req.params;
+//     try {
+//       const [updated] = await db.Zona.update(req.body, {
+//         where: { idZona: id }, // Recuerda que en JS es idZona por el mapeo field: 'id_zona'
+//       });
+      
+//       if (updated === 0) {
+//         return res.status(404).json({ 
+//           status: "error",
+//           message: "Zona no encontrada o sin cambios" 
+//         });
+//       }
+      
+//       const zonaActualizada = await db.Zona.findByPk(id);
+//       res.json({ 
+//         status: "success",
+//         message: "Zona actualizada", 
+//         data: zonaActualizada 
+//       });
+//     } catch (error) {
+//       res.status(500).json({ 
+//         status: "error",
+//         message: "Error al actualizar la zona", 
+//         error: error.message 
+//       });
+//     }
+//   },
+
+//   // 5. Desactivar zona (Borrado lógico)
+//   deleteZona: async (req, res = response) => {
+//     const { id } = req.params;
+//     try {
+//       await db.Zona.update({ activo: false }, {
+//         where: { idZona: id }
+//       });
+//       res.json({ 
+//         status: "success",
+//         message: "Zona desactivada correctamente" 
+//       });
+//     } catch (error) {
+//       res.status(500).json({ 
+//         status: "error",
+//         message: "Error al eliminar la zona", 
+//         error: error.message 
+//       });
+//     }
+//   },
+// };
+
+// export default zonaController;

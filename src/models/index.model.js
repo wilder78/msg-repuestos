@@ -1,6 +1,7 @@
 import { Sequelize, DataTypes } from "sequelize";
 import sequelize from "../config/mysql.config.js";
 
+// Importación de Modelos
 import UserModel from "./user.model.js";
 import RolModel from "./rol.model.js";
 import TipoDocumentoModel from "./document_type.model.js";
@@ -13,14 +14,19 @@ const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
+// Inicialización de modelos
+// Usamos nombres consistentes para llamarlos desde los controladores
 db.Usuario = UserModel(sequelize, DataTypes);
 db.Rol = RolModel(sequelize, DataTypes);
 db.TipoDocumento = TipoDocumentoModel(sequelize, DataTypes);
 db.Empleado = EmployeeModel(sequelize, DataTypes);
 db.Supplier = SupplierModel(sequelize, DataTypes); 
-db.Zona = ZonaModel(sequelize, DataTypes); 
+db.Zona = ZonaModel(sequelize, DataTypes); // Coincide con el nombre del modelo depurado
 
+// Configuración de Asociaciones
+// Este bucle recorre cada modelo y ejecuta la función 'associate' si existe
 Object.keys(db).forEach((modelName) => {
+  // Verificamos que sea un modelo de Sequelize y tenga el método associate
   if (db[modelName].associate) {
     db[modelName].associate(db);
   }
