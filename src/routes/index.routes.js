@@ -5,29 +5,33 @@ import tipoDocumentoRoutes from "./documentType.routes.js";
 import employeeRoutes from "./employee.routes.js";
 import supplierRoutes from "./supplier.routes.js";
 import zonaRoutes from "./zona.routes.js";
+import customerRoutes from "./customer.routes.js";
+import categoryRoutes from "./category.routes.js";
+import productRoutes from "./product.routes.js"; // <--- 1. IMPORTACIÓN DE PRODUCTOS
 
 const router = Router();
 
 /**
  * Agrupación de Rutas de la API
- * Prefijo base: /api (definido usualmente en app.js)
+ * Prefijo base definido en app.js (ej: /api)
  */
 
-// Usuarios y Seguridad
+// --- Usuarios y Seguridad ---
 router.use("/users", userRoutes);
 router.use("/roles", rolRoutes);
 
-// Maestros / Tablas de Referencia
+// --- Maestros / Tablas de Referencia ---
 router.use("/tipo-documento", tipoDocumentoRoutes);
 router.use("/zonas", zonaRoutes);
+router.use("/categories", categoryRoutes);
 
-// Entidades de Negocio (CRUDs)
+// --- Entidades de Negocio (CRUDs) ---
 router.use("/employees", employeeRoutes);
 router.use("/suppliers", supplierRoutes);
+router.use("/customers", customerRoutes);
+router.use("/products", productRoutes); // <--- 2. RUTA DE PRODUCTOS REGISTRADA
 
 export default router;
-
-
 
 // import { Router } from "express";
 // import userRoutes from "./user.routes.js";
@@ -35,27 +39,29 @@ export default router;
 // import tipoDocumentoRoutes from "./documentType.routes.js";
 // import employeeRoutes from "./employee.routes.js";
 // import supplierRoutes from "./supplier.routes.js";
-// import zonaRoutes from "./zona.routes.js"; // <-- Importamos las nuevas rutas de zona
+// import zonaRoutes from "./zona.routes.js";
+// import customerRoutes from "./customer.routes.js";
+// import categoryRoutes from "./category.routes.js"; // <--- 1. IMPORTACIÓN AGREGADA
 
 // const router = Router();
 
-// // Rutas para Usuarios: /api/users
-// router.use("/users", userRoutes);
+// /**
+//  * Agrupación de Rutas de la API
+//  * Prefijo base definido en app.js (ej: /api)
+//  */
 
-// // Rutas para Roles: /api/roles
+// // --- Usuarios y Seguridad ---
+// router.use("/users", userRoutes);
 // router.use("/roles", rolRoutes);
 
-// // Rutas para Tipo de Documento: /api/tipo-documento
+// // --- Maestros / Tablas de Referencia ---
 // router.use("/tipo-documento", tipoDocumentoRoutes);
+// router.use("/zonas", zonaRoutes);
+// router.use("/categories", categoryRoutes); // <--- 2. RUTA REGISTRADA (Resuelve el error 404)
 
-// // Rutas para Empleados: /api/employees
+// // --- Entidades de Negocio (CRUDs) ---
 // router.use("/employees", employeeRoutes);
-
-// // Rutas para Proveedores: /api/suppliers
 // router.use("/suppliers", supplierRoutes);
-
-// // Rutas para Zonas: /api/zonas
-// router.use("/zonas", zonaRoutes); // <-- Registramos la ruta de zonas
+// router.use("/customers", customerRoutes);
 
 // export default router;
-

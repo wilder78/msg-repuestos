@@ -1,33 +1,39 @@
 export default (sequelize, DataTypes) => {
   const Supplier = sequelize.define(
-    "Supplier", // Nombre interno del modelo
+    "Supplier",
     {
-      idProveedor: {
+      id_proveedor: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         field: "id_proveedor",
       },
-      idTipoDocumento: {
+      // Cambiado de idTipoDocumento a id_tipo_documento
+      id_tipo_documento: {
         type: DataTypes.INTEGER,
         allowNull: false,
         field: "id_tipo_documento",
+        validate: {
+          notNull: { msg: "El tipo de documento es obligatorio" }
+        }
       },
-      numeroDocumento: {
-        type: DataTypes.STRING(15), // Ajustado a varchar(15) según tu DB
+      // Cambiado de numeroDocumento a numero_documento
+      numero_documento: {
+        type: DataTypes.STRING(15),
         allowNull: false,
         unique: true,
         field: "numero_documento",
         validate: {
-          notEmpty: true 
+          notEmpty: { msg: "El número de documento no puede estar vacío" }
         }
       },
-      nombreEmpresa: {
+      // Cambiado de nombreEmpresa a nombre_empresa
+      nombre_empresa: {
         type: DataTypes.STRING(150),
         allowNull: false,
         field: "nombre_empresa",
         validate: {
-          notEmpty: true
+          notEmpty: { msg: "El nombre de la empresa es obligatorio" }
         }
       },
       contacto: {
@@ -36,36 +42,34 @@ export default (sequelize, DataTypes) => {
         field: "contacto",
       },
       telefono: {
-        type: DataTypes.STRING(15), // Ajustado a varchar(15) según tu DB
+        type: DataTypes.STRING(15),
         allowNull: true,
         field: "telefono",
       },
       email: {
-        type: DataTypes.STRING(100), // Ajustado a varchar(100) según tu DB
-        allowNull: false,
-        validate: {
-          isEmail: true,
-          notNull: { msg: "El email no puede ser nulo" }
-        },
+        type: DataTypes.STRING(100),
+        allowNull: true, // Según tu DB (image_619e7b.png) permite nulos
         field: "email",
+        validate: {
+          isEmail: { msg: "Debe ser un correo electrónico válido" }
+        }
       },
-      condicionesComerciales: {
-        type: DataTypes.STRING(500), // Ajustado a varchar(500) según tu DB
+      condiciones_comerciales: {
+        type: DataTypes.STRING(500),
         allowNull: true,
         field: "condiciones_comerciales",
       },
       activo: {
-        type: DataTypes.BOOLEAN, // Mapea con tinyint(1) de tu DB
+        type: DataTypes.TINYINT(1),
         allowNull: false,
-        defaultValue: true,
+        defaultValue: 1,
         field: "activo",
       },
     },
     {
-      // CAMBIO PRINCIPAL: Ahora apunta a la tabla que ya existe y tiene relaciones
       tableName: "proveedores", 
       timestamps: false,
-      freezeTableName: true, // Evita que Sequelize intente cambiar el nombre
+      freezeTableName: true, 
     }
   );
 

@@ -1,43 +1,44 @@
 export default (sequelize, DataTypes) => {
   const Zona = sequelize.define(
-    "Zona", // Nombre del modelo en el código
+    "Zona",
     {
-      idZona: {
+      id_zona: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        field: "id_zona", 
+        field: "id_zona",
       },
-      nombreZona: {
-        type: DataTypes.STRING(100),
+      // Cambiado a Nombre_Zona para que Postman lo reconozca directamente
+      Nombre_Zona: {
+        type: DataTypes.STRING(50), // Ajustado a 50 según tu captura de DB
         allowNull: false,
-        field: "nombre_zona", // Ajustado a snake_case para consistencia
+        field: "Nombre_Zona", // Debe coincidir con la columna en MySQL (Case Sensitive)
         validate: {
-          notEmpty: { msg: "El nombre de la zona es obligatorio" }
-        }
+          notEmpty: { msg: "El nombre de la zona es obligatorio" },
+        },
       },
-      descripcion: {
+      // Cambiado a Descripcion (con D mayúscula si así lo usas en Postman)
+      Descripcion: {
         type: DataTypes.STRING(255),
         allowNull: true,
-        field: "descripcion", 
+        field: "Descripcion",
       },
-      activo: {
-        type: DataTypes.BOOLEAN,
+      // Cambiado a Activo
+      Activo: {
+        type: DataTypes.TINYINT(1), // En MySQL es tinyint(1)
         allowNull: false,
-        defaultValue: true,
-        field: "activo", 
+        defaultValue: 1,
+        field: "Activo",
       },
     },
     {
-      // CONEXIÓN CLAVE: Apuntamos a la tabla pluralizada de la base de datos
-      tableName: "zonas", 
+      tableName: "zonas",
       timestamps: false,
-      freezeTableName: true, // Evita que Sequelize intente renombrarla
-    }
+      freezeTableName: true,
+    },
   );
 
   Zona.associate = (models) => {
-    // Aquí puedes añadir las asociaciones cuando tus otros modelos estén listos
     /*
     Zona.hasMany(models.Cliente, {
       foreignKey: "id_zona", 
@@ -51,18 +52,18 @@ export default (sequelize, DataTypes) => {
 
 // export default (sequelize, DataTypes) => {
 //   const Zona = sequelize.define(
-//     "zona",
+//     "Zona", // Nombre del modelo en el código
 //     {
 //       idZona: {
 //         type: DataTypes.INTEGER,
 //         primaryKey: true,
 //         autoIncrement: true,
-//         field: "id_zona", 
+//         field: "id_zona",
 //       },
 //       nombreZona: {
 //         type: DataTypes.STRING(100),
 //         allowNull: false,
-//         field: "Nombre_Zona", 
+//         field: "nombre_zona", // Ajustado a snake_case para consistencia
 //         validate: {
 //           notEmpty: { msg: "El nombre de la zona es obligatorio" }
 //         }
@@ -70,27 +71,28 @@ export default (sequelize, DataTypes) => {
 //       descripcion: {
 //         type: DataTypes.STRING(255),
 //         allowNull: true,
-//         field: "Descripcion", 
+//         field: "descripcion",
 //       },
 //       activo: {
 //         type: DataTypes.BOOLEAN,
 //         allowNull: false,
 //         defaultValue: true,
-//         field: "Activo", 
+//         field: "activo",
 //       },
 //     },
 //     {
-//       tableName: "zona",
+//       // CONEXIÓN CLAVE: Apuntamos a la tabla pluralizada de la base de datos
+//       tableName: "zonas",
 //       timestamps: false,
-//       freezeTableName: true,
+//       freezeTableName: true, // Evita que Sequelize intente renombrarla
 //     }
 //   );
 
 //   Zona.associate = (models) => {
-//     // COMENTADO HASTA QUE EL ARCHIVO customer.model.js ESTÉ CREADO E IMPORTADO EN EL BARRIL
+//     // Aquí puedes añadir las asociaciones cuando tus otros modelos estén listos
 //     /*
 //     Zona.hasMany(models.Cliente, {
-//       foreignKey: "ID_Zona", 
+//       foreignKey: "id_zona",
 //       as: "clientes",
 //     });
 //     */

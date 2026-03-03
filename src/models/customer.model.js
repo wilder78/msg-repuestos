@@ -1,85 +1,94 @@
 export default (sequelize, DataTypes) => {
   const Customer = sequelize.define(
-    "cliente",
+    "Customer",
     {
-      idCliente: {
+      // Propiedad igual a la DB para evitar errores en Postman
+      ID_Cliente: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         field: "ID_Cliente",
       },
-      idTipoDocumento: {
+      ID_Tipo_Documento: {
         type: DataTypes.INTEGER,
         allowNull: false,
         field: "ID_Tipo_Documento",
+        validate: {
+          notNull: { msg: "El tipo de documento es obligatorio" }
+        }
       },
-      numeroDocumento: {
-        type: DataTypes.STRING(20),
+      Numero_Documento: {
+        type: DataTypes.STRING(15), // Ajustado a varchar(15) según tu DB
         allowNull: false,
         unique: true,
         field: "Numero_Documento",
+        validate: {
+          notEmpty: { msg: "El número de documento es obligatorio" }
+        }
       },
-      razonSocial: {
-        type: DataTypes.STRING(150),
+      Razon_social: {
+        type: DataTypes.STRING(200), // Ajustado a varchar(200) según tu DB
         allowNull: false,
         field: "Razon_social",
+        validate: {
+          notEmpty: { msg: "La razón social es obligatoria" }
+        }
       },
-      direccion: {
+      Direccion: {
         type: DataTypes.STRING(255),
-        allowNull: true,
+        allowNull: false, // En tu DB dice Nulo: No
         field: "Direccion",
       },
-      telefono: {
-        type: DataTypes.STRING(25),
-        allowNull: true,
+      Telefono: {
+        type: DataTypes.STRING(15), // Ajustado a varchar(15) según tu DB
+        allowNull: false, // En tu DB dice Nulo: No
         field: "Telefono",
       },
       email: {
-        type: DataTypes.STRING(125),
-        allowNull: false,
-        validate: {
-          isEmail: true,
-        },
+        type: DataTypes.STRING(100), // Ajustado a varchar(100) según tu DB
+        allowNull: true, // En tu DB dice Nulo: Sí (NULL)
         field: "email",
+        validate: {
+          isEmail: { msg: "Debe ser un correo electrónico válido" }
+        }
       },
-      tipoCliente: {
-        type: DataTypes.STRING(50), // Ej: Minorista, Mayorista
-        allowNull: true,
+      Tipo_Cliente: {
+        type: DataTypes.STRING(50),
+        allowNull: false, // En tu DB dice Nulo: No
         field: "Tipo_Cliente",
       },
-      cupoCredito: {
-        type: DataTypes.DECIMAL(18, 2), // Usamos Decimal para valores monetarios
+      Cupo_Credito: {
+        type: DataTypes.DECIMAL(10, 2), // Ajustado a decimal(10,2) según tu DB
         allowNull: false,
         defaultValue: 0.00,
         field: "Cupo_Credito",
       },
-      activo: {
-        type: DataTypes.BOOLEAN,
+      Activo: {
+        type: DataTypes.TINYINT(1),
         allowNull: false,
-        defaultValue: true,
+        defaultValue: 1,
         field: "Activo",
       },
-      idZona: {
+      ID_Zona: {
         type: DataTypes.INTEGER,
-        allowNull: true,
+        allowNull: false, // En tu DB dice Nulo: No
         field: "ID_Zona",
       },
     },
     {
-      tableName: "cliente",
+      tableName: "cliente", // Nombre de la tabla en singular como muestra tu DB
       timestamps: false,
       freezeTableName: true,
     }
   );
 
   Customer.associate = (models) => {
-    // Relación con Tipo de Documento
     Customer.belongsTo(models.TipoDocumento, {
       foreignKey: "ID_Tipo_Documento",
       as: "tipoDocumento",
     });
 
-    // Nota: Si tienes una tabla de Zonas, podrías asociarla aquí
+    // Descomenta esto cuando el modelo Zona esté listo
     /*
     Customer.belongsTo(models.Zona, {
       foreignKey: "ID_Zona",
