@@ -76,7 +76,7 @@ export default (sequelize, DataTypes) => {
       },
     },
     {
-      tableName: "cliente", // Nombre de la tabla en singular como muestra tu DB
+      tableName: "clientes", // Nombre de la tabla en singular como muestra tu DB
       timestamps: false,
       freezeTableName: true,
     }
