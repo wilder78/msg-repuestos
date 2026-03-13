@@ -1,34 +1,42 @@
 import express from "express";
 import cors from "cors";
+import path from "path"; // Necesario para manejar rutas de archivos
+import { fileURLToPath } from "url"; // Necesario para __dirname en ES Modules
 import "dotenv/config";
 import indexRoutes from "./routes/index.routes.js";
 import db from "./models/index.model.js";
 
 const app = express();
 
+// --- CONFIGURACIÓN DE RUTAS PARA ES MODULES ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // --- 1. MIDDLEWARES GLOBALES ---
 
-// Configuración de CORS: Permite que el Frontend (Vite) acceda a la API
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL || "http://localhost:5173", // Usar variable de entorno
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   }),
 );
 
-// Procesamiento de datos (Body Parsers)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// --- 2. RUTAS ---
+// --- 2. ARCHIVOS ESTÁTICOS (VITAL PARA EL PDF) ---
 
-// Prefijo global para la API
+// Esto permite que http://localhost:8080/reports/returns/archivo.pdf sea accesible
+app.use("/reports", express.static(path.join(__dirname, "../public/reports")));
+
+// --- 3. RUTAS ---
+
 app.use("/api", indexRoutes);
 
-// --- 3. MANEJO DE ERRORES ---
+// --- 4. MANEJO DE ERRORES ---
 
-// Manejo de rutas 404 (No encontradas)
+// Manejo de rutas 404
 app.use((req, res) => {
   res.status(404).json({
     error: "Ruta no encontrada",
@@ -47,39 +55,34 @@ app.use((err, req, res, next) => {
   });
 });
 
-// --- 4. INICIO DEL SERVIDOR ---
+// --- 5. INICIO DEL SERVIDOR ---
 
 async function startServer() {
   try {
-    // Autentica la conexión con la base de datos MySQL
     await db.sequelize.authenticate();
     console.log("✅ Conexión a MySQL exitosa (MSG Repuestos)");
 
-    // Sincroniza modelos (Solo en ambiente de desarrollo)
+    // Sincronización controlada
     if (process.env.NODE_ENV === "development") {
-      await db.sequelize.sync({ alter: false });
-      console.log("📋 Modelos sincronizados");
+      // alter: false para evitar que Sequelize cambie tus tablas con Triggers manuales
+      await db.sequelize.sync({ alter: false }); 
+      console.log("📋 Modelos verificados");
     }
 
     const PORT = process.env.PORT || 8080;
     const server = app.listen(PORT, () => {
-      console.log(
-        `🚀 Motor de tienda MSG corriendo en: http://localhost:${PORT}`,
-      );
-      console.log(`📡 Ambiente: ${process.env.NODE_ENV || "development"}`);
+      console.log(`🚀 Motor MSG corriendo en: http://localhost:${PORT}`);
     });
 
-    // Cierre controlado del servidor (Graceful Shutdown)
+    // Graceful Shutdown
     process.on("SIGTERM", () => {
-      console.log("⚠️ SIGTERM recibido. Cerrando servidor...");
       server.close(async () => {
         await db.sequelize.close();
-        console.log("✅ Servidor y base de datos cerrados correctamente");
         process.exit(0);
       });
     });
   } catch (error) {
-    console.error("❌ Error crítico al iniciar:", error.message);
+    console.error("❌ Error crítico:", error.message);
     process.exit(1);
   }
 }
@@ -94,29 +97,29 @@ startServer();
 
 // const app = express();
 
-// // Middlewares
-// // Middlewares
-// // 2. Configurar CORS (Permite que React se conecte)
+// // --- 1. MIDDLEWARES GLOBALES ---
+
+// // Configuración de CORS: Permite que el Frontend (Vite) acceda a la API
 // app.use(
 //   cors({
-//     origin: "http://localhost:5173", // URL por defecto de Vite
+//     origin: "http://localhost:5173",
 //     methods: ["GET", "POST", "PUT", "DELETE"],
 //     credentials: true,
 //   }),
 // );
 
+// // Procesamiento de datos (Body Parsers)
 // app.use(express.json());
 // app.use(express.urlencoded({ extended: true }));
 
-// // Prefijo global /api
-// app.use("/api", indexRoutes);
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true })); // Para formularios
+// // --- 2. RUTAS ---
 
-// // Prefijo global /api
+// // Prefijo global para la API
 // app.use("/api", indexRoutes);
 
-// // Manejo de rutas no encontradas
+// // --- 3. MANEJO DE ERRORES ---
+
+// // Manejo de rutas 404 (No encontradas)
 // app.use((req, res) => {
 //   res.status(404).json({
 //     error: "Ruta no encontrada",
@@ -124,7 +127,7 @@ startServer();
 //   });
 // });
 
-// // Manejo global de errores
+// // Manejo global de errores (500)
 // app.use((err, req, res, next) => {
 //   console.error("❌ Error no manejado:", err.stack);
 //   res.status(err.status || 500).json({
@@ -135,16 +138,17 @@ startServer();
 //   });
 // });
 
-// // Función de inicio del servidor
+// // --- 4. INICIO DEL SERVIDOR ---
+
 // async function startServer() {
 //   try {
-//     // Autentica la conexión con la base de datos
+//     // Autentica la conexión con la base de datos MySQL
 //     await db.sequelize.authenticate();
 //     console.log("✅ Conexión a MySQL exitosa (MSG Repuestos)");
 
-//     // Sincroniza modelos (opcional - solo en desarrollo)
+//     // Sincroniza modelos (Solo en ambiente de desarrollo)
 //     if (process.env.NODE_ENV === "development") {
-//       await db.sequelize.sync({ alter: false }); // Cambia a true si quieres alterar tablas
+//       await db.sequelize.sync({ alter: false });
 //       console.log("📋 Modelos sincronizados");
 //     }
 
@@ -156,21 +160,17 @@ startServer();
 //       console.log(`📡 Ambiente: ${process.env.NODE_ENV || "development"}`);
 //     });
 
-//     // Manejo de cierre graceful
+//     // Cierre controlado del servidor (Graceful Shutdown)
 //     process.on("SIGTERM", () => {
 //       console.log("⚠️ SIGTERM recibido. Cerrando servidor...");
 //       server.close(async () => {
 //         await db.sequelize.close();
-//         console.log("✅ Servidor cerrado correctamente");
+//         console.log("✅ Servidor y base de datos cerrados correctamente");
 //         process.exit(0);
 //       });
 //     });
 //   } catch (error) {
-//     console.error(
-//       "❌ Error crítico al conectar la base de datos:",
-//       error.message,
-//     );
-//     console.error("Detalles:", error);
+//     console.error("❌ Error crítico al iniciar:", error.message);
 //     process.exit(1);
 //   }
 // }
