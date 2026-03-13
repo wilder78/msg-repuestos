@@ -18,7 +18,7 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
         field: "numero_documento",
       },
-      nombre: { // Mantenemos 'nombre' en JS
+      nombre: {
         type: DataTypes.STRING(100),
         allowNull: false,
         field: "nombres", 
@@ -40,7 +40,7 @@ export default (sequelize, DataTypes) => {
       },
       idUsuario: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true, // <--- CAMBIO CLAVE: Ahora permite registrar sin usuario
         field: "id_usuario",
       },
       disponibilidad: {
