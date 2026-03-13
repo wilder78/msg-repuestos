@@ -16,6 +16,10 @@ import ProductModel from "./product.model.js";
 import PurchaseModel from "./shopping.model.js"; 
 import PurchaseDetailModel from "./shopping_detail.model.js";
 
+// 2. IMPORTACIÓN DE MODELOS DE PEDIDOS (NUEVO)
+import OrderModel from "./order.model.js";
+import OrderDetailModel from "./order_detail.model.js";
+
 const db = {};
 
 db.Sequelize = Sequelize;
@@ -32,12 +36,16 @@ db.Customer      = CustomerModel(sequelize, DataTypes);
 db.Category      = CategoryModel(sequelize, DataTypes);
 db.Product       = ProductModel(sequelize, DataTypes);
 
-// 2. INICIALIZACIÓN DE COMPRAS Y DETALLES
+// INICIALIZACIÓN DE COMPRAS Y DETALLES
 db.Purchase       = PurchaseModel(sequelize, DataTypes);
 db.PurchaseDetail = PurchaseDetailModel(sequelize, DataTypes);
 
+// INICIALIZACIÓN DE PEDIDOS Y DETALLES
+db.Order          = OrderModel(sequelize, DataTypes);
+db.OrderDetail    = OrderDetailModel(sequelize, DataTypes);
+
 // Configuración de Asociaciones
-// Gracias a este bloque, las funciones .associate() de tus modelos se ejecutarán automáticamente
+// Este bloque recorre cada modelo en 'db' y ejecuta su función associate()
 Object.keys(db).forEach((modelName) => {
   if (db[modelName] && db[modelName].associate) {
     db[modelName].associate(db);
@@ -46,11 +54,10 @@ Object.keys(db).forEach((modelName) => {
 
 export default db;
 
-
 // import { Sequelize, DataTypes } from "sequelize";
 // import sequelize from "../config/mysql.config.js";
 
-// // Importación de Modelos
+// // Importación de Modelos existentes
 // import UserModel from "./user.model.js";
 // import RolModel from "./rol.model.js";
 // import TipoDocumentoModel from "./document_type.model.js";
@@ -59,7 +66,11 @@ export default db;
 // import ZonaModel from "./zona.model.js";
 // import CustomerModel from "./customer.model.js";
 // import CategoryModel from "./category.model.js";
-// import ProductModel from "./product.model.js"; // <--- 1. Importación de Productos
+// import ProductModel from "./product.model.js";
+
+// // 1. IMPORTACIÓN DE MODELOS DE COMPRAS
+// import PurchaseModel from "./shopping.model.js"; 
+// import PurchaseDetailModel from "./shopping_detail.model.js";
 
 // const db = {};
 
@@ -67,7 +78,6 @@ export default db;
 // db.sequelize = sequelize;
 
 // // Inicialización de modelos
-// // Los nombres a la izquierda (db.Nombre) son los que usarás en tus controladores
 // db.Usuario       = UserModel(sequelize, DataTypes);
 // db.Rol           = RolModel(sequelize, DataTypes);
 // db.TipoDocumento = TipoDocumentoModel(sequelize, DataTypes);
@@ -76,10 +86,14 @@ export default db;
 // db.Zona          = ZonaModel(sequelize, DataTypes);
 // db.Customer      = CustomerModel(sequelize, DataTypes);
 // db.Category      = CategoryModel(sequelize, DataTypes);
-// db.Product       = ProductModel(sequelize, DataTypes); // <--- 2. Inicialización de Productos
+// db.Product       = ProductModel(sequelize, DataTypes);
+
+// // 2. INICIALIZACIÓN DE COMPRAS Y DETALLES
+// db.Purchase       = PurchaseModel(sequelize, DataTypes);
+// db.PurchaseDetail = PurchaseDetailModel(sequelize, DataTypes);
 
 // // Configuración de Asociaciones
-// // Este bloque es vital para que Product.belongsTo(Category) funcione
+// // Gracias a este bloque, las funciones .associate() de tus modelos se ejecutarán automáticamente
 // Object.keys(db).forEach((modelName) => {
 //   if (db[modelName] && db[modelName].associate) {
 //     db[modelName].associate(db);
@@ -87,4 +101,3 @@ export default db;
 // });
 
 // export default db;
-
