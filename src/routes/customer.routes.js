@@ -1,59 +1,50 @@
 // import { Router } from "express";
+// // 1. Verifica si es controller o controllers (singular/plural)
 // import customerController from "../controllers/customer.controllers.js";
-// // Importación del middleware de autenticación
 // import { verifyToken } from "../middleware/auth.middleware.js";
 
 // const router = Router();
 
+// // 2. Depuración: Si esto imprime 'undefined' en consola, el problema es la exportación
+// console.log("Cargando CustomerController:", customerController);
+
 // /**
-//  * Rutas para la gestión de Clientes (Protegidas con JWT)
 //  * Base URL: /api/customers
 //  */
 
-// // 1. Obtener todos los clientes
-// // Se añade verifyToken como segundo argumento para proteger el acceso
-// router.get("/", [verifyToken], customerController.getAllCustomers);
+// // Se recomienda pasar el middleware directamente o en arreglo
+// router.get("/", verifyToken, customerController.getAllCustomers);
 
-// // 2. Obtener un cliente por su ID
-// router.get("/:id", [verifyToken], customerController.getCustomerById);
+// router.get("/:id", verifyToken, customerController.getCustomerById);
 
-// // 3. Registrar un nuevo cliente
-// router.post("/", [verifyToken], customerController.createCustomer);
+// router.post("/", verifyToken, customerController.createCustomer);
 
-// // 4. Actualizar los datos de un cliente
-// router.put("/:id", [verifyToken], customerController.updateCustomer);
+// router.put("/:id", verifyToken, customerController.updateCustomer);
 
-// // 5. Desactivar un cliente (Borrado lógico)
-// router.delete("/:id", [verifyToken], customerController.deleteCustomer);
+// router.delete("/:id", verifyToken, customerController.deleteCustomer);
 
 // export default router;
 
 import { Router } from "express";
+// 1. Verifica si es controller o controllers (singular/plural)
 import customerController from "../controllers/customer.controllers.js";
-// Importación del middleware de autenticación
 import { verifyToken } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
 /**
- * Rutas para la gestión de Clientes (Protegidas con JWT)
  * Base URL: /api/customers
  */
 
-// 1. Obtener todos los clientes
-// Se añade verifyToken como segundo argumento para proteger el acceso
+// Se recomienda pasar el middleware directamente o en arreglo
 router.get("/", customerController.getAllCustomers);
 
-// 2. Obtener un cliente por su ID
 router.get("/:id", customerController.getCustomerById);
 
-// 3. Registrar un nuevo cliente
 router.post("/", customerController.createCustomer);
 
-// 4. Actualizar los datos de un cliente
 router.put("/:id", customerController.updateCustomer);
 
-// 5. Desactivar un cliente (Borrado lógico)
 router.delete("/:id", customerController.deleteCustomer);
 
 export default router;
