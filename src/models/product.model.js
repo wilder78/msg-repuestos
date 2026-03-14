@@ -2,7 +2,7 @@ export default (sequelize, DataTypes) => {
   const Product = sequelize.define(
     "Product",
     {
-      id_producto: {
+      idProducto: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
@@ -33,39 +33,41 @@ export default (sequelize, DataTypes) => {
         allowNull: true,
         field: "modelo",
       },
-      imagen_url: {
+      imagenUrl: {
         type: DataTypes.STRING(255),
         allowNull: true,
         defaultValue: "default_producto.png",
         field: "imagen_url",
       },
-      precio_buy: {
+      precioCompra: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
         defaultValue: 0.0,
-        field: "precio_compra", // Mapeo exacto a la DB
+        field: "precio_compra",
       },
-      stock_buen_estado: {
+      // Corregido según la imagen de la estructura de la base de datos
+      stockBuenEstado: {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0,
-        field: "stock_Buen_Estado", // Cuidado con las mayúsculas de la imagen
+        field: "stock_buen_estado",
       },
-      stock_defectuoso: {
+      // Corregido según la imagen de la estructura de la base de datos
+      stockDefectuoso: {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0,
-        field: "stock_Defectuoso",
+        field: "stock_defectuoso",
       },
-      id_categoria: {
+      idCategoria: {
         type: DataTypes.INTEGER,
         allowNull: false,
         field: "id_categoria",
       },
       activo: {
-        type: DataTypes.TINYINT(1),
+        type: DataTypes.BOOLEAN, // TINYINT(1) se mapea mejor como BOOLEAN
         allowNull: false,
-        defaultValue: 1,
+        defaultValue: true,
         field: "activo",
       },
     },
@@ -76,12 +78,19 @@ export default (sequelize, DataTypes) => {
     }
   );
 
-  // Definición de la relación con Categorías
   Product.associate = (models) => {
     Product.belongsTo(models.Category, {
       foreignKey: "id_categoria",
       as: "categoria",
     });
+    
+    // Si usas PurchaseDetail, añade la relación inversa aquí si es necesario
+    if (models.PurchaseDetail) {
+      Product.hasMany(models.PurchaseDetail, {
+        foreignKey: "id_producto",
+        as: "detallesCompra",
+      });
+    }
   };
 
   return Product;

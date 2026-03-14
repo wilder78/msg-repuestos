@@ -2,33 +2,34 @@ export default (sequelize, DataTypes) => {
   const Purchase = sequelize.define(
     "Purchase",
     {
-      id_compra: {
+      // Propiedad en JS: idCompra | Columna en BD: id_compra
+      idCompra: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        field: "id_compra",
+        field: "id_compra", 
       },
-      fecha_orden: {
+      fechaOrden: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
-        field: "Fecha_Orden",
+        field: "fecha_orden",
       },
-      fecha_registro: {
+      fechaRegistro: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
-        field: "Fecha_Registro",
+        field: "fecha_registro",
       },
-      id_proveedor: {
+      idProveedor: {
         type: DataTypes.INTEGER,
         allowNull: false,
         field: "id_proveedor",
       },
-      id_empleado: {
+      idEmpleado: {
         type: DataTypes.INTEGER,
         allowNull: false,
         field: "id_empleado",
       },
-      estado_compra: {
+      estadoCompra: {
         type: DataTypes.STRING(20),
         allowNull: false,
         field: "estado_compra",
@@ -39,7 +40,7 @@ export default (sequelize, DataTypes) => {
         defaultValue: 0.0,
         field: "total",
       },
-      ruta_pdf: {
+      rutaPdf: {
         type: DataTypes.STRING(255),
         allowNull: true,
         field: "ruta_pdf",
@@ -53,21 +54,16 @@ export default (sequelize, DataTypes) => {
   );
 
   Purchase.associate = (models) => {
-    // 1. Relación con Detalles (Ya la tenías)
     Purchase.hasMany(models.PurchaseDetail, {
-      foreignKey: "id_compra",
+      foreignKey: "id_compra", // La FK física en la tabla detalles
       as: "detalles",
     });
 
-    // 2. SOLUCIÓN AL ERROR: Relación con Proveedor (Supplier)
-    // Asegúrate de que el modelo en index.model.js se llame 'Supplier'
     Purchase.belongsTo(models.Supplier, {
       foreignKey: "id_proveedor",
-      as: "proveedor", // Este alias es el que usará el controlador en el include
+      as: "proveedor",
     });
 
-    // 3. Relación con Empleado (Recomendado)
-    // Asegúrate de que el modelo en index.model.js se llame 'Empleado'
     Purchase.belongsTo(models.Empleado, {
       foreignKey: "id_empleado",
       as: "empleado",
