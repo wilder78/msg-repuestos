@@ -14,7 +14,7 @@ export const getAllRoles = async (req, res) => {
     }
 };
 
-// 2. OBTENER UN ROL POR ID (Añadido para solucionar el error 404 en GET /api/rol/1)
+// 2. Obtener un rol por ID
 export const getRolById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -35,16 +35,16 @@ export const getRolById = async (req, res) => {
 export const createRol = async (req, res) => {
     try {
         const { nombreRol } = req.body;
-        
+
         if (!nombreRol) {
             return res.status(400).json({ error: "El nombre del rol es obligatorio" });
         }
 
-        const newRol = await Rol.create({ 
-            nombreRol, 
-            idEstado: 1 
+        const newRol = await Rol.create({
+            nombreRol,
+            idEstado: 1
         });
-        
+
         res.status(201).json({ message: "Rol creado con éxito", data: newRol });
     } catch (error) {
         console.error("❌ Error en createRol:", error);
@@ -64,15 +64,14 @@ export const updateRol = async (req, res) => {
             return res.status(404).json({ error: "Rol no encontrado" });
         }
 
-        // Usamos update directamente sobre la instancia
         await rol.update({
             nombreRol: nombreRol !== undefined ? nombreRol : rol.nombreRol,
             idEstado: idEstado !== undefined ? idEstado : rol.idEstado
         });
 
-        res.status(200).json({ 
-            message: "Rol actualizado exitosamente", 
-            data: rol 
+        res.status(200).json({
+            message: "Rol actualizado exitosamente",
+            data: rol
         });
     } catch (error) {
         console.error("❌ Error al actualizar rol:", error);
@@ -85,12 +84,12 @@ export const deleteRol = async (req, res) => {
     try {
         const { id } = req.params;
         const rol = await Rol.findByPk(id);
-        
+
         if (!rol) {
             return res.status(404).json({ error: "Rol no encontrado" });
         }
 
-        await rol.update({ idEstado: 0 }); 
+        await rol.update({ idEstado: 0 });
         res.status(200).json({ message: "Rol desactivado correctamente" });
     } catch (error) {
         console.error("❌ Error en deleteRol:", error);
@@ -98,73 +97,13 @@ export const deleteRol = async (req, res) => {
     }
 };
 
+// FIX: Export default con los nombres reales de las funciones
+const rolController = {
+    getAllRoles,
+    getRolById,
+    createRol,
+    updateRol,
+    deleteRol,
+};
 
-
-// import db from "../models/index.model.js";
-// const { Rol } = db;
-
-// // 1. Obtener todos los roles activos
-// export const getAllRoles = async (req, res) => {
-//   try {
-//     const roles = await Rol.findAll({
-//       where: { idEstado: 1 },
-//     });
-//     res.status(200).json(roles);
-//   } catch (error) {
-//     res.status(500).json({ error: "Error al obtener roles" });
-//   }
-// };
-
-// // 2. Crear un nuevo rol
-// export const createRol = async (req, res) => {
-//   try {
-//     const { nombreRol } = req.body;
-//     const newRol = await Rol.create({ nombreRol, idEstado: 1 });
-//     res.status(201).json({ message: "Rol creado", data: newRol });
-//   } catch (error) {
-//     res.status(500).json({ error: "Error al crear el rol" });
-//   }
-// };
-
-// // 3. MODIFICAR un rol (NUEVA FUNCIÓN)
-// export const updateRol = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const { nombreRol, idEstado } = req.body;
-
-//     const rol = await Rol.findByPk(id);
-
-//     if (!rol) {
-//       return res.status(404).json({ error: "Rol no encontrado" });
-//     }
-
-//     // Actualizamos solo los campos enviados
-//     await rol.update({
-//       nombreRol: nombreRol !== undefined ? nombreRol : rol.nombreRol,
-//       idEstado: idEstado !== undefined ? idEstado : rol.idEstado
-//     });
-
-//     res.status(200).json({ 
-//       message: "Rol actualizado exitosamente", 
-//       data: rol 
-//     });
-//   } catch (error) {
-//     console.error("❌ Error al actualizar rol:", error);
-//     res.status(500).json({ error: "Error interno al actualizar el rol" });
-//   }
-// };
-
-// // 4. Eliminar (Desactivar) un rol
-// export const deleteRol = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const rol = await Rol.findByPk(id);
-//     if (!rol) return res.status(404).json({ error: "Rol no encontrado" });
-
-//     await rol.update({ idEstado: 0 }); // Cambia a Inactivo
-//     res.status(200).json({ message: "Rol desactivado correctamente" });
-//   } catch (error) {
-//     res.status(500).json({ error: "Error al eliminar el rol" });
-//   }
-// };
-
+export default rolController;

@@ -8,20 +8,19 @@ const orderController = {};
  * 2 = Separación (Resta stock)
  */
 
-// 1. OBTENER TODOS LOS PEDIDOS (Para que tu consulta GET /api/orders funcione)
+// 1. OBTENER TODOS LOS PEDIDOS
 orderController.getAllOrders = async (req, res) => {
   try {
     const pedidos = await db.Order.findAll({
       include: [
         { model: db.Customer, as: "cliente" },
-        { 
-          model: db.OrderDetail, 
+        {
+          model: db.OrderDetail,
           as: "detalles",
-          include: [{ model: db.Product, as: "producto" }]
-        }
+          include: [{ model: db.Product, as: "producto" }],
+        },
       ],
-      // CAMBIA ESTA LÍNEA:
-      order: [['id_pedido', 'DESC']] // Usamos id_pedido en lugar de createdAt
+      order: [["id_pedido", "DESC"]],
     });
     res.json(pedidos);
   } catch (error) {
@@ -63,17 +62,24 @@ orderController.createOrder = async (req, res) => {
     let acumuladoTotal = 0;
 
     for (const item of detalles) {
-      const producto = await db.Product.findByPk(item.id_producto, { transaction: t });
+      const producto = await db.Product.findByPk(item.id_producto, {
+        transaction: t,
+      });
 
-      if (!producto) throw new Error(`El repuesto ID ${item.id_producto} no existe.`);
+      if (!producto)
+        throw new Error(`El repuesto ID ${item.id_producto} no existe.`);
 
-      // Si es SEPARACIÓN (2), descontamos stock
       if (Number(estadoActual) === 2) {
         if (producto.stock_buen_estado < item.cantidad_solicitada) {
-          throw new Error(`Stock insuficiente para ${producto.nombre}. Disponible: ${producto.stock_buen_estado}`);
+          throw new Error(
+            `Stock insuficiente para ${producto.nombre}. Disponible: ${producto.stock_buen_estado}`
+          );
         }
         await producto.update(
-          { stock_buen_estado: producto.stock_buen_estado - item.cantidad_solicitada },
+          {
+            stock_buen_estado:
+              producto.stock_buen_estado - item.cantidad_solicitada,
+          },
           { transaction: t }
         );
       }
@@ -99,7 +105,10 @@ orderController.createOrder = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: estadoActual === 1 ? "Cotización creada con éxito" : "Pedido separado con éxito",
+      message:
+        estadoActual === 1
+          ? "Cotización creada con éxito"
+          : "Pedido separado con éxito",
       id_pedido: nuevoPedido.id_pedido,
       total: acumuladoTotal,
     });
@@ -121,18 +130,27 @@ orderController.confirmSeparation = async (req, res) => {
 
     if (!pedido) throw new Error("Pedido no encontrado.");
     if (Number(pedido.id_estado_pedido) !== 1) {
-      throw new Error("Solo se pueden separar pedidos que estén en estado de Cotización.");
+      throw new Error(
+        "Solo se pueden separar pedidos que estén en estado de Cotización."
+      );
     }
 
     for (const detalle of pedido.detalles) {
-      const producto = await db.Product.findByPk(detalle.id_producto, { transaction: t });
+      const producto = await db.Product.findByPk(detalle.id_producto, {
+        transaction: t,
+      });
 
       if (producto.stock_buen_estado < detalle.cantidad_solicitada) {
-        throw new Error(`Stock insuficiente para confirmar el repuesto: ${producto.nombre}`);
+        throw new Error(
+          `Stock insuficiente para confirmar el repuesto: ${producto.nombre}`
+        );
       }
 
       await producto.update(
-        { stock_buen_estado: producto.stock_buen_estado - detalle.cantidad_solicitada },
+        {
+          stock_buen_estado:
+            producto.stock_buen_estado - detalle.cantidad_solicitada,
+        },
         { transaction: t }
       );
     }
@@ -140,7 +158,10 @@ orderController.confirmSeparation = async (req, res) => {
     await pedido.update({ id_estado_pedido: 2 }, { transaction: t });
     await t.commit();
 
-    res.json({ success: true, message: "Pedido confirmado y stock descontado correctamente." });
+    res.json({
+      success: true,
+      message: "Pedido confirmado y stock descontado correctamente.",
+    });
   } catch (error) {
     if (t) await t.rollback();
     res.status(400).json({ success: false, message: error.message });
@@ -162,11 +183,13 @@ orderController.getOrderById = async (req, res) => {
       ],
     });
 
-    if (!pedido) return res.status(404).json({ message: "Pedido no encontrado" });
+    if (!pedido)
+      return res.status(404).json({ message: "Pedido no encontrado" });
     res.json(pedido);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-export { orderController };
+// FIX: 'export { orderController }' → 'export default orderController'
+export default orderController;

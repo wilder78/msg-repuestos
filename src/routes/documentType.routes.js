@@ -1,57 +1,18 @@
-// import express from "express";
-// import { 
-//   getAllTipos, 
-//   getTipoById, // <--- Importar la nueva función
-//   createTipo, 
-//   updateTipo, 
-//   deleteTipo 
-// } from "../controllers/documentType.controllers.js";
-// import { verifyToken } from "../middleware/auth.middleware.js";
-
-// const router = express.Router();
-
-// // Obtener todos los registros
-// router.get("/", verifyToken, getAllTipos);
-
-// // Consultar por ID
-// router.get("/:id", verifyToken, getTipoById);
-
-// // Crear registro
-// router.post("/", verifyToken, createTipo);
-
-// // Actualizar por ID
-// router.put("/:id", verifyToken, updateTipo);
-
-// // Eliminar por ID
-// router.delete("/:id", verifyToken, deleteTipo);
-
-// export default router;
-
-import express from "express";
-import { 
-  getAllTipos, 
-  getTipoById, // <--- Importar la nueva función
-  createTipo, 
-  updateTipo, 
-  deleteTipo 
-} from "../controllers/documentType.controllers.js";
+import { Router } from "express";
+import documentTypeController from "../controllers/documentType.controllers.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 
-const router = express.Router();
+const router = Router();
 
-// Obtener todos los registros
-router.get("/", getAllTipos);
+// Middleware global para proteger el maestro de tipos de documento
+router.use(verifyToken);
 
-// Consultar por ID
-router.get("/:id", getTipoById);
+// --- Endpoints de Tipos de Documento ---
 
-// Crear registro
-router.post("/", createTipo);
-
-// Actualizar por ID
-router.put("/:id", updateTipo);
-
-// Eliminar por ID
-router.delete("/:id", deleteTipo);
+router.get("/", documentTypeController.getAllTipos);
+router.get("/:id", documentTypeController.getTipoById);
+router.post("/", documentTypeController.createTipo);
+router.put("/:id", documentTypeController.updateTipo);
+router.delete("/:id", documentTypeController.deleteTipo);
 
 export default router;

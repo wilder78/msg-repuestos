@@ -36,8 +36,6 @@ const createPurchase = async (req, res) => {
         .json({ ok: false, msg: "Estado de compra inválido." });
     }
 
-    // A. Crear Cabecera
-    // IMPORTANTE: Asegúrate que el modelo Purchase tenga idCompra con field: "id_compra"
     const nuevaCompra = await db.Purchase.create(
       {
         idProveedor: id_proveedor,
@@ -48,18 +46,15 @@ const createPurchase = async (req, res) => {
       { transaction: t },
     );
 
-    // B. Crear Detalles
-    // Validamos que nuevaCompra.idCompra exista antes de seguir
     if (!nuevaCompra.idCompra) {
       throw new Error("No se pudo obtener el ID de la nueva compra.");
     }
 
     const detallesData = productos.map((item) => ({
-      // Intentamos ambos nombres por si el modelo de Detalle no está depurado aún
       idCompra: nuevaCompra.idCompra,
-      id_compra: nuevaCompra.idCompra, // Respaldo para evitar el error 'cannot be null'
+      id_compra: nuevaCompra.idCompra,
       idProducto: item.id_producto,
-      id_producto: item.id_producto, // Respaldo
+      id_producto: item.id_producto,
       cantidad: item.cantidad,
       costoUnitario: item.costo_unitario,
       subtotal: item.cantidad * item.costo_unitario,
@@ -114,13 +109,11 @@ const confirmReceipt = async (req, res) => {
       });
     }
 
-    // Actualizar estado
     await compra.update(
       { estadoCompra: ESTADOS_VALIDOS.RECIBIDO },
       { transaction: t },
     );
 
-    // Actualizar stock manualmente
     const updatePromises = compra.detalles.map((item) =>
       db.Product.increment("stock_buen_estado", {
         by: item.cantidad,
@@ -140,7 +133,7 @@ const confirmReceipt = async (req, res) => {
 };
 
 /**
- * 3. LISTAR TODAS LAS COMPRAS (Corregido para evitar errores de order)
+ * 3. LISTAR TODAS LAS COMPRAS
  */
 const getAllPurchases = async (req, res) => {
   try {
@@ -159,7 +152,6 @@ const getAllPurchases = async (req, res) => {
         },
         { model: db.Supplier, as: "proveedor", attributes: ["nombre_empresa"] },
       ],
-      // Si 'idCompra' falla, Sequelize usará el field 'id_compra' automáticamente
       order: [["idCompra", "DESC"]],
     });
     res.json({ ok: true, data: purchases });
@@ -204,9 +196,12 @@ const getPurchaseById = async (req, res) => {
   }
 };
 
-export const shoppingController = {
+// FIX: nombres corregidos — apuntan a las funciones reales definidas arriba
+const shoppingController = {
   createPurchase,
   confirmReceipt,
   getAllPurchases,
   getPurchaseById,
 };
+
+export default shoppingController;

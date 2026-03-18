@@ -1,55 +1,20 @@
-// import express from "express";
-// import {
-//   getAllUsers,
-//   getUserById,
-//   getUserByEmail,
-//   createUser,
-//   updateUser,
-//   deleteUser,
-//   loginUser
-// } from "../controllers/user.controllers.js"; // <--- Confirmado con "s"
-// import { verifyToken } from "../middleware/auth.middleware.js";
-
-// const router = express.Router();
-
-// // Auth & Registro (Públicos)
-// router.post("/login", loginUser);
-// router.post("/register", createUser);
-
-// // CRUD Administrativo (Protegidos)
-// router.get("/", verifyToken, getAllUsers);
-// router.get("/email/:email", verifyToken, getUserByEmail);
-// router.get("/:id", verifyToken, getUserById); 
-// router.put("/:idUsuario", verifyToken, updateUser);
-// router.delete("/:id", verifyToken, deleteUser);
-
-// export default router;
-
-
-import express from "express";
-import {
-  getAllUsers,
-  getUserById,
-  getUserByEmail,
-  createUser,
-  updateUser,
-  deleteUser,
-  loginUser
-} from "../controllers/user.controllers.js"; // <--- Confirmado con "s"
+import { Router } from "express";
+import userController from "../controllers/user.controllers.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 
-const router = express.Router();
+const router = Router();
 
-// Auth & Registro (Públicos)
-router.post("/login", loginUser);
-router.post("/register", createUser);
+// --- Rutas Públicas (Auth) ---
+router.post("/login", userController.loginUser);
+router.post("/register", userController.createUser);
 
-// CRUD Administrativo (Protegidos)
-router.get("/", getAllUsers);
-router.get("/email/:email", getUserByEmail);
-router.get("/:id", getUserById); 
-router.put("/:idUsuario", updateUser);
-router.delete("/:id", deleteUser);
+// --- Rutas Protegidas (Requieren Token) ---
+router.use(verifyToken);
+
+router.get("/", userController.getAllUsers);
+router.get("/:id", userController.getUserById);
+router.get("/email/:email", userController.getUserByEmail);
+router.put("/:idUsuario", userController.updateUser);
+router.delete("/:id", userController.deleteUser);
 
 export default router;
-

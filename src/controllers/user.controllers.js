@@ -4,16 +4,18 @@ import db from "../models/index.model.js";
 
 const { Usuario } = db;
 
-// Helper para limpiar campos sensibles/duplicados del usuario
+// Helper para limpiar campos sensibles del usuario
+// FIX: se eliminaba 'id_rol' (snake_case) pero el modelo usa 'idRol' (camelCase)
 const sanitizeUser = (user) => {
-  const { passwordHash, id_rol, ...clean } = user.toJSON ? user.toJSON() : user;
+  const { passwordHash, idRol, ...clean } = user.toJSON ? user.toJSON() : user;
   return clean;
 };
 
 // 1. Crear usuario
 export const createUser = async (req, res) => {
   try {
-    const { nombreUsuario, email, password, idEstado, idRol, idCliente } = req.body;
+    const { nombreUsuario, email, password, idEstado, idRol, idCliente } =
+      req.body;
 
     if (!nombreUsuario || !email || !password) {
       return res.status(400).json({
@@ -99,7 +101,7 @@ export const loginUser = async (req, res) => {
 export const getAllUsers = async (req, res) => {
   try {
     const users = await Usuario.findAll({
-      attributes: { exclude: ["passwordHash", "password_hash"] },
+      attributes: { exclude: ["passwordHash"] },
     });
 
     return res.status(200).json({
@@ -118,7 +120,7 @@ export const getUserById = async (req, res) => {
     const { id } = req.params;
 
     const user = await Usuario.findByPk(id, {
-      attributes: { exclude: ["passwordHash", "password_hash"] },
+      attributes: { exclude: ["passwordHash"] },
     });
 
     if (!user) {
@@ -142,7 +144,7 @@ export const getUserByEmail = async (req, res) => {
 
     const user = await Usuario.findOne({
       where: { email: email.toLowerCase().trim() },
-      attributes: { exclude: ["passwordHash", "password_hash"] },
+      attributes: { exclude: ["passwordHash"] },
     });
 
     if (!user) {
@@ -160,12 +162,13 @@ export const getUserByEmail = async (req, res) => {
 };
 
 // 6. Actualizar usuario
+// FIX: param renombrado de 'idUsuario' a 'id' para consistencia con las demás funciones
 export const updateUser = async (req, res) => {
   try {
-    const { idUsuario } = req.params;
+    const { id } = req.params;
     const { nombreUsuario, email, password, idEstado, idRol } = req.body;
 
-    const user = await Usuario.findByPk(idUsuario);
+    const user = await Usuario.findByPk(id);
 
     if (!user) {
       return res.status(404).json({ error: "Usuario no encontrado." });
@@ -218,6 +221,19 @@ export const deleteUser = async (req, res) => {
     return res.status(500).json({ error: "Error interno del servidor." });
   }
 };
+
+// FIX: Export default agregado para resolver el SyntaxError en user.routes.js
+const userController = {
+  createUser,
+  loginUser,
+  getAllUsers,
+  getUserById,
+  getUserByEmail,
+  updateUser,
+  deleteUser,
+};
+
+export default userController;
 
 
 

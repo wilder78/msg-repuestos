@@ -1,62 +1,18 @@
-// import express from "express";
-// import {
-//   getAllRoles,
-//   getRolById,
-//   createRol,
-//   updateRol,
-//   deleteRol,
-// } from "../controllers/rol.controllers.js";
-// import { verifyToken } from "../middleware/auth.middleware.js";
-
-// const router = express.Router();
-
-// // --- RUTAS DE ROLES ---
-
-// // Obtener todos los roles
-// router.get("/", verifyToken, getAllRoles);
-
-// // Obtener un rol por ID
-// router.get("/:id", verifyToken, getRolById); 
-
-// // Crear un rol
-// router.post("/", verifyToken, createRol);
-
-// // Actualizar un rol
-// router.put("/:id", verifyToken, updateRol);
-
-// // Eliminar (desactivar) un rol
-// router.delete("/:id", verifyToken, deleteRol);
-
-// export default router;
-
-
-import express from "express";
-import {
-  getAllRoles,
-  getRolById,
-  createRol,
-  updateRol,
-  deleteRol,
-} from "../controllers/rol.controllers.js";
+import { Router } from "express";
+import rolController from "../controllers/rol.controllers.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 
-const router = express.Router();
+const router = Router();
 
-// --- RUTAS DE ROLES ---
+// Middleware de seguridad global para la gestión de roles
+router.use(verifyToken);
 
-// Obtener todos los roles
-router.get("/", getAllRoles);
+// --- Endpoints de Roles ---
 
-// Obtener un rol por ID
-router.get("/:id", getRolById); 
-
-// Crear un rol
-router.post("/", createRol);
-
-// Actualizar un rol
-router.put("/:id", updateRol);
-
-// Eliminar (desactivar) un rol
-router.delete("/:id", deleteRol);
+router.get("/", rolController.getAllRoles);
+router.get("/:id", rolController.getRolById);
+router.post("/", rolController.createRol);
+router.put("/:id", rolController.updateRol);
+router.delete("/:id", rolController.deleteRol);
 
 export default router;

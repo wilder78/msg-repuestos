@@ -31,9 +31,12 @@ import ReturnDetailModel from "./returnDetail.model.js";
 import RutaModel from "./ruta.model.js";
 import RutaDetailModel from "./rutaDetail.model.js";
 
-// 6. IMPORTACIÓN DE SEGURIDAD (ROLES Y PERMISOS) - NUEVO
+// 6. IMPORTACIÓN DE SEGURIDAD (ROLES Y PERMISOS)
 import PermissionModel from "./permission.model.js";
 import RolePermissionModel from "./rolePermission.model.js";
+
+// 7. IMPORTACIÓN DE GESTIÓN FINANCIERA (NUEVO)
+import CreditModel from "./credit.model.js";
 
 const db = {};
 
@@ -70,9 +73,12 @@ db.ReturnDetail = ReturnDetailModel(sequelize, DataTypes);
 db.Ruta = RutaModel(sequelize, DataTypes);
 db.RutaDetail = RutaDetailModel(sequelize, DataTypes);
 
-// INICIALIZACIÓN DE SEGURIDAD (NUEVO)
+// INICIALIZACIÓN DE SEGURIDAD
 db.Permission = PermissionModel(sequelize, DataTypes);
 db.RolePermission = RolePermissionModel(sequelize, DataTypes);
+
+// INICIALIZACIÓN DE GESTIÓN FINANCIERA (NUEVO)
+db.Credit = CreditModel(sequelize, DataTypes);
 
 // Configuración de Asociaciones
 Object.keys(db).forEach((modelName) => {
@@ -86,7 +92,7 @@ export default db;
 // import { Sequelize, DataTypes } from "sequelize";
 // import sequelize from "../config/mysql.config.js";
 
-// // Importación de Modelos existentes
+// // Importación de Modelos base
 // import UserModel from "./user.model.js";
 // import RolModel from "./rol.model.js";
 // import TipoDocumentoModel from "./document_type.model.js";
@@ -112,9 +118,13 @@ export default db;
 // import ReturnModel from "./return.model.js";
 // import ReturnDetailModel from "./returnDetail.model.js";
 
-// // 5. IMPORTACIÓN DE MODELOS DE RUTAS (LOGÍSTICA) - NUEVO
+// // 5. IMPORTACIÓN DE MODELOS DE RUTAS (LOGÍSTICA)
 // import RutaModel from "./ruta.model.js";
 // import RutaDetailModel from "./rutaDetail.model.js";
+
+// // 6. IMPORTACIÓN DE SEGURIDAD (ROLES Y PERMISOS) - NUEVO
+// import PermissionModel from "./permission.model.js";
+// import RolePermissionModel from "./rolePermission.model.js";
 
 // const db = {};
 
@@ -147,9 +157,13 @@ export default db;
 // db.CustomerReturn = ReturnModel(sequelize, DataTypes);
 // db.ReturnDetail = ReturnDetailModel(sequelize, DataTypes);
 
-// // INICIALIZACIÓN DE RUTAS - NUEVO
+// // INICIALIZACIÓN DE RUTAS
 // db.Ruta = RutaModel(sequelize, DataTypes);
 // db.RutaDetail = RutaDetailModel(sequelize, DataTypes);
+
+// // INICIALIZACIÓN DE SEGURIDAD (NUEVO)
+// db.Permission = PermissionModel(sequelize, DataTypes);
+// db.RolePermission = RolePermissionModel(sequelize, DataTypes);
 
 // // Configuración de Asociaciones
 // Object.keys(db).forEach((modelName) => {
