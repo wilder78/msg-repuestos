@@ -38,15 +38,12 @@ export default (sequelize, DataTypes) => {
     },
   );
 
-  // Agregamos las asociaciones para que el controlador pueda hacer "eager loading" (includes)
   ReturnDetail.associate = (models) => {
-    // Relación con la cabecera de devolución
     ReturnDetail.belongsTo(models.CustomerReturn, {
       foreignKey: "idDevolucion",
       as: "cabecera",
     });
 
-    // Relación con el producto (Vital para saber qué se devolvió)
     ReturnDetail.belongsTo(models.Product, {
       foreignKey: "idProducto",
       as: "producto",

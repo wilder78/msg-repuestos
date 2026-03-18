@@ -73,7 +73,6 @@ export const deleteTipo = async (req, res) => {
   }
 };
 
-// FIX: export default agregado
 const documentTypeController = {
   getAllTipos,
   getTipoById,

@@ -21,7 +21,7 @@ export default (sequelize, DataTypes) => {
       nombre: {
         type: DataTypes.STRING(100),
         allowNull: false,
-        field: "nombres", 
+        field: "nombres",
       },
       apellido: {
         type: DataTypes.STRING(100),
@@ -40,7 +40,7 @@ export default (sequelize, DataTypes) => {
       },
       idUsuario: {
         type: DataTypes.INTEGER,
-        allowNull: true, // <--- CAMBIO CLAVE: Ahora permite registrar sin usuario
+        allowNull: true,
         field: "id_usuario",
       },
       disponibilidad: {
@@ -54,13 +54,13 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 1,
         field: "activo",
-      }
+      },
     },
     {
       tableName: "empleado",
       timestamps: false,
       freezeTableName: true,
-    }
+    },
   );
 
   return Employee;

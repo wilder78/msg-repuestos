@@ -5,17 +5,15 @@ import db from "../models/index.model.js";
 const { Usuario } = db;
 
 // Helper para limpiar campos sensibles del usuario
-// FIX: se eliminaba 'id_rol' (snake_case) pero el modelo usa 'idRol' (camelCase)
 const sanitizeUser = (user) => {
   const { passwordHash, idRol, ...clean } = user.toJSON ? user.toJSON() : user;
   return clean;
 };
 
-// 1. Crear usuario
+// 1. Crear un nuevo usuario
 export const createUser = async (req, res) => {
   try {
-    const { nombreUsuario, email, password, idEstado, idRol, idCliente } =
-      req.body;
+    const { nombreUsuario, email, password, idEstado, idRol, idCliente } = req.body;
 
     if (!nombreUsuario || !email || !password) {
       return res.status(400).json({
@@ -40,18 +38,16 @@ export const createUser = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error al crear usuario:", error);
-
     if (error.name === "SequelizeUniqueConstraintError") {
       return res.status(409).json({
         error: "El email o nombre de usuario ya está registrado.",
       });
     }
-
     return res.status(500).json({ error: "Error interno al crear usuario." });
   }
 };
 
-// 2. Login
+// 2. Autenticación de usuario (Login)
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -97,7 +93,7 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// 3. Obtener todos los usuarios
+// 3. Obtener todos los usuarios registrados
 export const getAllUsers = async (req, res) => {
   try {
     const users = await Usuario.findAll({
@@ -114,11 +110,10 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// 4. Obtener usuario por ID
+// 4. Obtener un usuario por su ID
 export const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
-
     const user = await Usuario.findByPk(id, {
       attributes: { exclude: ["passwordHash"] },
     });
@@ -137,11 +132,10 @@ export const getUserById = async (req, res) => {
   }
 };
 
-// 5. Obtener usuario por EMAIL
+// 5. Obtener un usuario por su correo electrónico
 export const getUserByEmail = async (req, res) => {
   try {
     const { email } = req.params;
-
     const user = await Usuario.findOne({
       where: { email: email.toLowerCase().trim() },
       attributes: { exclude: ["passwordHash"] },
@@ -161,8 +155,7 @@ export const getUserByEmail = async (req, res) => {
   }
 };
 
-// 6. Actualizar usuario
-// FIX: param renombrado de 'idUsuario' a 'id' para consistencia con las demás funciones
+// 6. Actualizar información de un usuario
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -189,22 +182,19 @@ export const updateUser = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error al actualizar usuario:", error);
-
     if (error.name === "SequelizeUniqueConstraintError") {
       return res.status(409).json({
         error: "El email o nombre de usuario ya está en uso.",
       });
     }
-
     return res.status(500).json({ error: "Error interno del servidor." });
   }
 };
 
-// 7. Eliminar usuario (Soft delete)
+// 7. Desactivar un usuario (Borrado lógico)
 export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
-
     const user = await Usuario.findByPk(id);
 
     if (!user) {
@@ -222,7 +212,6 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-// FIX: Export default agregado para resolver el SyntaxError en user.routes.js
 const userController = {
   createUser,
   loginUser,
@@ -234,236 +223,3 @@ const userController = {
 };
 
 export default userController;
-
-
-
-// import bcrypt from "bcrypt";
-// import jwt from "jsonwebtoken";
-// import db from "../models/index.model.js";
-
-// const { Usuario } = db;
-
-// // 1. Crear usuario (Registro)
-// export const createUser = async (req, res) => {
-//   try {
-//     const { nombreUsuario, email, password, idEstado, idRol, idCliente } =
-//       req.body;
-
-//     if (!nombreUsuario || !email || !password) {
-//       return res.status(400).json({
-//         error: "Faltan campos obligatorios (nombreUsuario, email, password).",
-//       });
-//     }
-
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     const newUser = await Usuario.create({
-//       nombreUsuario,
-//       email: email.toLowerCase().trim(),
-//       passwordHash: hashedPassword,
-//       idEstado: idEstado ?? 1,
-//       idRol: idRol ?? 3,
-//       idCliente: idCliente ?? null,
-//     });
-
-//     const userResponse = newUser.toJSON();
-//     delete userResponse.passwordHash;
-
-//     return res.status(201).json({
-//       message: "Usuario creado exitosamente",
-//       data: userResponse,
-//     });
-//   } catch (error) {
-//     console.error("❌ Error al crear usuario:", error);
-
-//     if (error.name === "SequelizeUniqueConstraintError") {
-//       return res.status(409).json({
-//         error: "El email o nombre de usuario ya está registrado.",
-//       });
-//     }
-
-//     return res.status(500).json({ error: "Error interno al crear usuario." });
-//   }
-// };
-
-// // 2. Login (Inicio de sesión por EMAIL)
-// export const loginUser = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     if (!email || !password) {
-//       return res.status(400).json({ error: "Email y contraseña requeridos." });
-//     }
-
-//     // SIN INCLUDES - solo busca el usuario
-//     const user = await Usuario.findOne({
-//       where: { email: email.toLowerCase().trim() },
-//     });
-
-//     if (!user) {
-//       return res.status(401).json({ error: "Credenciales incorrectas." });
-//     }
-
-//     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-
-//     if (!isPasswordValid) {
-//       return res.status(401).json({ error: "Credenciales incorrectas." });
-//     }
-
-//     const token = jwt.sign(
-//       {
-//         idUsuario: user.idUsuario,
-//         idRol: user.idRol, // Solo el ID
-//       },
-//       process.env.JWT_SECRET,
-//       { expiresIn: process.env.JWT_EXPIRES || "1h" },
-//     );
-
-//     return res.status(200).json({
-//       message: "¡Bienvenido a MSG Repuestos!",
-//       token,
-//       user: {
-//         id: user.idUsuario,
-//         nombre: user.nombreUsuario,
-//         email: user.email,
-//         idRol: user.idRol, // Solo el ID
-//         idEstado: user.idEstado, // Solo el ID
-//       },
-//     });
-//   } catch (error) {
-//     console.error("❌ Error en login:", error);
-//     return res.status(500).json({ error: "Error interno del servidor." });
-//   }
-// };
-
-// // 3. Obtener todos los usuarios
-// export const getAllUsers = async (req, res) => {
-//   try {
-//     const users = await Usuario.findAll({
-//       attributes: { exclude: ["passwordHash"] },
-//     });
-
-//     return res.status(200).json({
-//       message: "Usuarios obtenidos exitosamente",
-//       data: users,
-//     });
-//   } catch (error) {
-//     console.error("❌ Error al obtener usuarios:", error);
-//     return res.status(500).json({ error: "Error interno del servidor." });
-//   }
-// };
-
-// // 4. Obtener usuario por ID
-// export const getUserById = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-
-//     const user = await Usuario.findByPk(id, {
-//       attributes: { exclude: ["passwordHash"] },
-//     });
-
-//     if (!user) {
-//       return res.status(404).json({ error: "Usuario no encontrado." });
-//     }
-
-//     return res.status(200).json({
-//       message: "Usuario encontrado",
-//       data: user,
-//     });
-//   } catch (error) {
-//     console.error("❌ Error al obtener usuario:", error);
-//     return res.status(500).json({ error: "Error interno del servidor." });
-//   }
-// };
-
-// // 5. Obtener usuario por EMAIL
-// export const getUserByEmail = async (req, res) => {
-//   try {
-//     const { email } = req.params;
-
-//     const user = await Usuario.findOne({
-//       where: { email: email.toLowerCase().trim() },
-//       attributes: { exclude: ["passwordHash"] },
-//     });
-
-//     if (!user) {
-//       return res.status(404).json({ error: "Usuario no encontrado." });
-//     }
-
-//     return res.status(200).json({
-//       message: "Usuario encontrado",
-//       data: user,
-//     });
-//   } catch (error) {
-//     console.error("❌ Error al obtener usuario:", error);
-//     return res.status(500).json({ error: "Error interno del servidor." });
-//   }
-// };
-
-// // 6. Actualizar usuario
-// export const updateUser = async (req, res) => {
-//   try {
-//     const { idUsuario } = req.params;
-//     const { nombreUsuario, email, password, idEstado, idRol } = req.body;
-
-//     const user = await Usuario.findByPk(idUsuario);
-
-//     if (!user) {
-//       return res.status(404).json({ error: "Usuario no encontrado." });
-//     }
-
-//     const updateData = {};
-
-//     if (nombreUsuario) updateData.nombreUsuario = nombreUsuario;
-//     if (email) updateData.email = email.toLowerCase().trim();
-//     if (idEstado) updateData.idEstado = idEstado;
-//     if (idRol) updateData.idRol = idRol;
-
-//     if (password) {
-//       updateData.passwordHash = await bcrypt.hash(password, 10);
-//     }
-
-//     await user.update(updateData);
-
-//     const userResponse = user.toJSON();
-//     delete userResponse.passwordHash;
-
-//     return res.status(200).json({
-//       message: "Usuario actualizado exitosamente",
-//       data: userResponse,
-//     });
-//   } catch (error) {
-//     console.error("❌ Error al actualizar usuario:", error);
-
-//     if (error.name === "SequelizeUniqueConstraintError") {
-//       return res.status(409).json({
-//         error: "El email o nombre de usuario ya está en uso.",
-//       });
-//     }
-
-//     return res.status(500).json({ error: "Error interno del servidor." });
-//   }
-// };
-
-// // 7. Eliminar usuario (Soft delete - cambiar id_estado a 2)
-// export const deleteUser = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-
-//     const user = await Usuario.findByPk(id);
-
-//     if (!user) {
-//       return res.status(404).json({ error: "Usuario no encontrado." });
-//     }
-
-//     // Soft delete: cambiar estado a inactivo (2)
-//     await user.update({ idEstado: 2 });
-
-//     return res.status(200).json({
-//       message: "Usuario desactivado exitosamente",
-//     });
-//   } catch (error) {
-//     console.error("❌ Error al eliminar usuario:", error);
-//     return res.status(500).json({ error: "Error interno del servidor." });
-//   }
-// };

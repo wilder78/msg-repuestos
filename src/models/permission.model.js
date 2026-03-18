@@ -28,11 +28,10 @@ export default (sequelize, DataTypes) => {
       tableName: "permisos",
       timestamps: false,
       freezeTableName: true,
-    }
+    },
   );
 
   Permission.associate = (models) => {
-    // Relación Mucho a Muchos con Roles a través de la tabla intermedia
     Permission.belongsToMany(models.Rol, {
       through: models.RolePermission,
       foreignKey: "id_permiso",

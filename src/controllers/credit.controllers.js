@@ -2,7 +2,7 @@ import db from "../models/index.model.js";
 const { Credit, Customer } = db;
 
 const creditController = {
-  // 1. Obtener todos los créditos con información del cliente
+  // 1. Consulta global de cartera: Recupera el listado de créditos integrando datos identificativos del cliente mediante un JOIN.
   getAllCredits: async (req, res) => {
     try {
       const credits = await Credit.findAll({
@@ -10,7 +10,6 @@ const creditController = {
           {
             model: Customer,
             as: "cliente",
-            // IMPORTANTE: Se cambió 'nombre_cliente' por 'razonSocial' y 'idCliente'
             attributes: ["idCliente", "numeroDocumento", "razonSocial"],
           },
         ],
@@ -21,12 +20,11 @@ const creditController = {
     }
   },
 
-  // 2. Crear o asignar un crédito a un cliente
+  // 2. Apertura de línea crediticia: Valida la preexistencia de cuenta y establece los límites financieros iniciales para un cliente específico.
   createCredit: async (req, res) => {
     try {
       const { idCliente, cupoAprobado } = req.body;
 
-      // Validar si el cliente ya tiene un crédito asignado
       const existe = await Credit.findOne({ where: { idCliente } });
       if (existe) {
         return res.status(400).json({
@@ -35,13 +33,12 @@ const creditController = {
         });
       }
 
-      // El disponible inicial es igual al aprobado
       const nuevoCredito = await Credit.create({
         idCliente,
         cupoAprobado,
         cupoDisponible: cupoAprobado,
         cupoUtilizado: 0,
-        idEstadoCredito: 1, // Activo por defecto
+        idEstadoCredito: 1, 
       });
 
       res.status(201).json({ ok: true, credit: nuevoCredito });
@@ -50,7 +47,7 @@ const creditController = {
     }
   },
 
-  // 3. Actualizar uso de crédito (Ej: Al registrar una venta)
+  // 3. Gestión de cupos y saldos: Recalcula el balance financiero disponible basándose en el consumo actual y previene el sobregiro comercial.
   updateCreditLimit: async (req, res) => {
     try {
       const { id } = req.params;
@@ -58,25 +55,16 @@ const creditController = {
 
       const credito = await Credit.findByPk(id);
       if (!credito) {
-        return res
-          .status(404)
-          .json({ ok: false, message: "Crédito no encontrado" });
+        return res.status(404).json({ ok: false, message: "Crédito no encontrado" });
       }
 
-      // Lógica de Negocio: Calcular nuevo disponible
-      const nuevoDisponible =
-        parseFloat(credito.cupoAprobado) - parseFloat(cupoUtilizado);
-
-      // Validación opcional: ¿Puede quedar en negativo?
-      // Si no permites sobregiro, descomenta esto:
+      const nuevoDisponible = parseFloat(credito.cupoAprobado) - parseFloat(cupoUtilizado);
 
       if (nuevoDisponible < 0) {
-        return res
-          .status(400)
-          .json({
-            ok: false,
-            message: "Cupo insuficiente para esta transacción",
-          });
+        return res.status(400).json({
+          ok: false,
+          message: "Cupo insuficiente para esta transacción",
+        });
       }
 
       await credito.update({

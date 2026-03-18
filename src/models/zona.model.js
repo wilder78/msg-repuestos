@@ -6,12 +6,12 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        field: "id_zona", // Coincide con la PK en la imagen
+        field: "id_zona",
       },
       nombreZona: {
         type: DataTypes.STRING(50),
         allowNull: false,
-        field: "nombre_zona", // En la imagen está todo en minúsculas
+        field: "nombre_zona",
         validate: {
           notEmpty: { msg: "El nombre de la zona es obligatorio" },
         },
@@ -19,13 +19,13 @@ export default (sequelize, DataTypes) => {
       descripcion: {
         type: DataTypes.STRING(255),
         allowNull: true,
-        field: "descripcion", // En minúsculas según la imagen
+        field: "descripcion",
       },
       activo: {
         type: DataTypes.TINYINT(1),
         allowNull: false,
         defaultValue: 1,
-        field: "activo", // En minúsculas según la imagen
+        field: "activo",
       },
     },
     {
@@ -36,13 +36,12 @@ export default (sequelize, DataTypes) => {
   );
 
   Zona.associate = (models) => {
-    // Aquí puedes habilitar las relaciones cuando depuremos Clientes
-    /*
-    Zona.hasMany(models.Cliente, {
-      foreignKey: "id_zona", 
-      as: "clientes",
-    });
-    */
+    if (models.Customer) {
+      Zona.hasMany(models.Customer, {
+        foreignKey: "id_zona",
+        as: "clientes",
+      });
+    }
   };
 
   return Zona;

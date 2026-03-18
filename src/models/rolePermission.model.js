@@ -31,17 +31,15 @@ export default (sequelize, DataTypes) => {
       tableName: "roles_permisos",
       timestamps: false,
       freezeTableName: true,
-    }
+    },
   );
 
   RolePermission.associate = (models) => {
-    // Relación con Rol
     RolePermission.belongsTo(models.Rol, {
       foreignKey: "id_rol",
       as: "rol",
     });
 
-    // Relación con Permiso
     RolePermission.belongsTo(models.Permission, {
       foreignKey: "id_permiso",
       as: "permiso",

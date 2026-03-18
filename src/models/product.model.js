@@ -45,14 +45,14 @@ export default (sequelize, DataTypes) => {
         defaultValue: 0.0,
         field: "precio_compra",
       },
-      // Corregido según la imagen de la estructura de la base de datos
+
       stockBuenEstado: {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0,
         field: "stock_buen_estado",
       },
-      // Corregido según la imagen de la estructura de la base de datos
+
       stockDefectuoso: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -65,7 +65,7 @@ export default (sequelize, DataTypes) => {
         field: "id_categoria",
       },
       activo: {
-        type: DataTypes.BOOLEAN, // TINYINT(1) se mapea mejor como BOOLEAN
+        type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: true,
         field: "activo",
@@ -75,7 +75,7 @@ export default (sequelize, DataTypes) => {
       tableName: "productos",
       timestamps: false,
       freezeTableName: true,
-    }
+    },
   );
 
   Product.associate = (models) => {
@@ -83,8 +83,7 @@ export default (sequelize, DataTypes) => {
       foreignKey: "id_categoria",
       as: "categoria",
     });
-    
-    // Si usas PurchaseDetail, añade la relación inversa aquí si es necesario
+
     if (models.PurchaseDetail) {
       Product.hasMany(models.PurchaseDetail, {
         foreignKey: "id_producto",

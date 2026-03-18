@@ -2,12 +2,11 @@ export default (sequelize, DataTypes) => {
   const Purchase = sequelize.define(
     "Purchase",
     {
-      // Propiedad en JS: idCompra | Columna en BD: id_compra
       idCompra: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        field: "id_compra", 
+        field: "id_compra",
       },
       fechaOrden: {
         type: DataTypes.DATE,
@@ -50,12 +49,12 @@ export default (sequelize, DataTypes) => {
       tableName: "compras",
       timestamps: false,
       freezeTableName: true,
-    }
+    },
   );
 
   Purchase.associate = (models) => {
     Purchase.hasMany(models.PurchaseDetail, {
-      foreignKey: "id_compra", // La FK física en la tabla detalles
+      foreignKey: "id_compra",
       as: "detalles",
     });
 

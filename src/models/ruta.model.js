@@ -48,24 +48,21 @@ export default (sequelize, DataTypes) => {
     {
       tableName: "rutas",
       timestamps: false,
-      freezeTableName: true, // Es recomendable activarlo para evitar pluralizaciones automáticas de Sequelize
-    }
+      freezeTableName: true,
+    },
   );
 
   Ruta.associate = (models) => {
-    // CORRECCIÓN: Usamos 'RutaDetail' porque así lo definiste en index.model.js (db.RutaDetail)
     Ruta.hasMany(models.RutaDetail, {
       foreignKey: "id_ruta",
       as: "detalles",
     });
-    
-    // Relación con Zona
+
     Ruta.belongsTo(models.Zona, {
       foreignKey: "id_zona",
       as: "zona",
     });
 
-    // Relación con Empleado (Importante para saber quién conduce)
     Ruta.belongsTo(models.Empleado, {
       foreignKey: "id_empleado",
       as: "empleado",

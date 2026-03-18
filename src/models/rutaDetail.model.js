@@ -56,20 +56,16 @@ export default (sequelize, DataTypes) => {
   );
 
   RutaDetail.associate = (models) => {
-    // 1. Relación de vuelta hacia la cabecera (Usa models.Ruta definido en index)
     RutaDetail.belongsTo(models.Ruta, {
       foreignKey: "id_ruta",
       as: "cabeceraRuta",
     });
 
-    // 2. Relación con el Cliente (Usa models.Customer definido en index)
-    // Esto es vital para poder ver el nombre del cliente en el detalle de la ruta
     RutaDetail.belongsTo(models.Customer, {
       foreignKey: "id_cliente",
       as: "cliente",
     });
 
-    // 3. Relación con el Pedido (Opcional, usa models.Order definido en index)
     RutaDetail.belongsTo(models.Order, {
       foreignKey: "id_pedido",
       as: "pedido",

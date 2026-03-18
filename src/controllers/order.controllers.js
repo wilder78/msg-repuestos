@@ -3,12 +3,12 @@ import db from "../models/index.model.js";
 const orderController = {};
 
 /**
- * ESTADOS DEFINIDOS:
- * 1 = Cotización (No resta stock)
- * 2 = Separación (Resta stock)
+ * ESTADOS DE PEDIDO:
+ * 1 = Cotización (No afecta stock)
+ * 2 = Separación (Resta stock de 'buen estado')
  */
 
-// 1. OBTENER TODOS LOS PEDIDOS
+// 1. Obtener todos los pedidos con sus clientes y productos detallados
 orderController.getAllOrders = async (req, res) => {
   try {
     const pedidos = await db.Order.findAll({
@@ -22,13 +22,13 @@ orderController.getAllOrders = async (req, res) => {
       ],
       order: [["id_pedido", "DESC"]],
     });
-    res.json(pedidos);
+    return res.json(pedidos);
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// 2. CREAR PEDIDO O COTIZACIÓN
+// 2. Crear un nuevo Pedido o Cotización (Maneja lógica de stock)
 orderController.createOrder = async (req, res) => {
   const t = await db.sequelize.transaction();
   try {
@@ -42,10 +42,14 @@ orderController.createOrder = async (req, res) => {
     } = req.body;
 
     if (!detalles || !Array.isArray(detalles) || detalles.length === 0) {
-      throw new Error("El pedido debe contener al menos un producto.");
+      if (!t.finished) await t.rollback();
+      return res.status(400).json({ 
+        success: false, 
+        message: "El pedido debe contener al menos un producto." 
+      });
     }
 
-    const estadoActual = id_estado_pedido || 1;
+    const estadoActual = Number(id_estado_pedido) || 1;
 
     const nuevoPedido = await db.Order.create(
       {
@@ -62,24 +66,19 @@ orderController.createOrder = async (req, res) => {
     let acumuladoTotal = 0;
 
     for (const item of detalles) {
-      const producto = await db.Product.findByPk(item.id_producto, {
-        transaction: t,
-      });
+      const producto = await db.Product.findByPk(item.id_producto, { transaction: t });
 
-      if (!producto)
-        throw new Error(`El repuesto ID ${item.id_producto} no existe.`);
+      if (!producto) throw new Error(`El repuesto ID ${item.id_producto} no existe.`);
 
-      if (Number(estadoActual) === 2) {
+      // Si es SEPARACIÓN (2), descontamos stock inmediatamente
+      if (estadoActual === 2) {
         if (producto.stock_buen_estado < item.cantidad_solicitada) {
           throw new Error(
             `Stock insuficiente para ${producto.nombre}. Disponible: ${producto.stock_buen_estado}`
           );
         }
         await producto.update(
-          {
-            stock_buen_estado:
-              producto.stock_buen_estado - item.cantidad_solicitada,
-          },
+          { stock_buen_estado: producto.stock_buen_estado - item.cantidad_solicitada },
           { transaction: t }
         );
       }
@@ -103,22 +102,19 @@ orderController.createOrder = async (req, res) => {
     await nuevoPedido.update({ total_neto: acumuladoTotal }, { transaction: t });
     await t.commit();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message:
-        estadoActual === 1
-          ? "Cotización creada con éxito"
-          : "Pedido separado con éxito",
+      message: estadoActual === 1 ? "Cotización creada" : "Pedido separado y stock descontado",
       id_pedido: nuevoPedido.id_pedido,
       total: acumuladoTotal,
     });
   } catch (error) {
-    if (t) await t.rollback();
-    res.status(400).json({ success: false, message: error.message });
+    if (t && !t.finished) await t.rollback();
+    return res.status(400).json({ success: false, message: error.message });
   }
 };
 
-// 3. CONFIRMAR SEPARACIÓN (Pasar de 1 a 2)
+// 3. Confirmar Separación: Pasar una Cotización (1) a Pedido Real (2)
 orderController.confirmSeparation = async (req, res) => {
   const { id } = req.params;
   const t = await db.sequelize.transaction();
@@ -130,27 +126,19 @@ orderController.confirmSeparation = async (req, res) => {
 
     if (!pedido) throw new Error("Pedido no encontrado.");
     if (Number(pedido.id_estado_pedido) !== 1) {
-      throw new Error(
-        "Solo se pueden separar pedidos que estén en estado de Cotización."
-      );
+      throw new Error("Solo se pueden separar pedidos en estado de Cotización.");
     }
 
+    // Al confirmar, recorremos detalles y restamos el stock
     for (const detalle of pedido.detalles) {
-      const producto = await db.Product.findByPk(detalle.id_producto, {
-        transaction: t,
-      });
+      const producto = await db.Product.findByPk(detalle.id_producto, { transaction: t });
 
       if (producto.stock_buen_estado < detalle.cantidad_solicitada) {
-        throw new Error(
-          `Stock insuficiente para confirmar el repuesto: ${producto.nombre}`
-        );
+        throw new Error(`Stock insuficiente para el repuesto: ${producto.nombre}`);
       }
 
       await producto.update(
-        {
-          stock_buen_estado:
-            producto.stock_buen_estado - detalle.cantidad_solicitada,
-        },
+        { stock_buen_estado: producto.stock_buen_estado - detalle.cantidad_solicitada },
         { transaction: t }
       );
     }
@@ -158,17 +146,17 @@ orderController.confirmSeparation = async (req, res) => {
     await pedido.update({ id_estado_pedido: 2 }, { transaction: t });
     await t.commit();
 
-    res.json({
+    return res.json({
       success: true,
-      message: "Pedido confirmado y stock descontado correctamente.",
+      message: "Separación confirmada con éxito.",
     });
   } catch (error) {
-    if (t) await t.rollback();
-    res.status(400).json({ success: false, message: error.message });
+    if (t && !t.finished) await t.rollback();
+    return res.status(400).json({ success: false, message: error.message });
   }
 };
 
-// 4. OBTENER POR ID
+// 4. Obtener detalle de un pedido por ID
 orderController.getOrderById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -183,13 +171,11 @@ orderController.getOrderById = async (req, res) => {
       ],
     });
 
-    if (!pedido)
-      return res.status(404).json({ message: "Pedido no encontrado" });
-    res.json(pedido);
+    if (!pedido) return res.status(404).json({ message: "Pedido no encontrado" });
+    return res.json(pedido);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
-// FIX: 'export { orderController }' → 'export default orderController'
 export default orderController;

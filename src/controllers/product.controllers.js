@@ -2,7 +2,7 @@ import { response } from "express";
 import db from "../models/index.model.js";
 
 const productController = {
-  // 1. Obtener todos los productos
+  // 1. Obtener listado de productos con su categoría asociada
   getAllProducts: async (req, res = response) => {
     try {
       const products = await db.Product.findAll({
@@ -13,7 +13,6 @@ const productController = {
             attributes: ["nombre_categoria"],
           },
         ],
-        // Cambiado a idProducto (propiedad del modelo)
         order: [["idProducto", "ASC"]],
       });
       return res.status(200).json(products);
@@ -26,7 +25,7 @@ const productController = {
     }
   },
 
-  // 2. Obtener un producto por ID
+  // 2. Obtener el detalle de un producto específico por ID
   getProductById: async (req, res = response) => {
     const { id } = req.params;
     try {
@@ -44,21 +43,19 @@ const productController = {
     }
   },
 
-  // 3. Crear un nuevo producto
+  // 3. Crear un nuevo producto (Mapeo de snake_case a camelCase)
   createProduct: async (req, res = response) => {
     try {
       const {
         id_categoria,
-        id_producto,
         stock_buen_estado,
         stock_defectuoso,
         precio_buy,
         imagen_url,
-        categoria, // Extraemos para limpiar
+        categoria, 
         ...rest
       } = req.body;
 
-      // Validación de categoría (usando el ID que viene del front)
       const idCat = parseInt(id_categoria);
       if (isNaN(idCat)) {
         return res.status(400).json({
@@ -75,7 +72,6 @@ const productController = {
         });
       }
 
-      // Mapeo manual del Body (snake_case) al Modelo (camelCase)
       const newProduct = await db.Product.create({
         ...rest,
         idCategoria: idCat,
@@ -91,7 +87,6 @@ const productController = {
         data: newProduct,
       });
     } catch (error) {
-      console.error("Error completo:", error);
       return res.status(400).json({
         status: "error",
         message: "Error al crear el producto",
@@ -100,7 +95,7 @@ const productController = {
     }
   },
 
-  // 4. Actualizar producto
+  // 4. Actualizar datos de un producto existente
   updateProduct: async (req, res = response) => {
     const { id } = req.params;
     try {
@@ -114,7 +109,6 @@ const productController = {
         ...data
       } = req.body;
 
-      // Mapeamos los campos que podrían venir del body al formato del modelo
       const dataToUpdate = { ...data };
       if (id_categoria) dataToUpdate.idCategoria = id_categoria;
       if (stock_buen_estado !== undefined)
@@ -125,7 +119,7 @@ const productController = {
       if (imagen_url) dataToUpdate.imagenUrl = imagen_url;
 
       const [updated] = await db.Product.update(dataToUpdate, {
-        where: { idProducto: id }, // Cambiado a idProducto
+        where: { idProducto: id },
       });
 
       if (updated === 0) {
@@ -146,15 +140,13 @@ const productController = {
     }
   },
 
-  // 5. Desactivar producto (Eliminación lógica)
+  // 5. Desactivar producto (Borrado lógico: activo = false)
   deleteProduct: async (req, res = response) => {
     const { id } = req.params;
     try {
       const [result] = await db.Product.update(
         { activo: false },
-        {
-          where: { idProducto: id }, // Cambiado a idProducto
-        },
+        { where: { idProducto: id } },
       );
 
       if (result === 0) {

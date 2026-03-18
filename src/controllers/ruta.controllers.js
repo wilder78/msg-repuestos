@@ -3,12 +3,11 @@ import db from "../models/index.model.js";
 const { Ruta, RutaDetail, Empleado, Zona, Customer } = db;
 
 const rutaController = {
-  // 1. CREAR RUTA CON DETALLES
+  // 1. Crear una nueva ruta con sus paradas detalladas
   createRuta: async (req, res) => {
     const t = await db.sequelize.transaction();
     try {
-      const { nombreRuta, idZona, idEmpleado, fechaPlanificada, detalles } =
-        req.body;
+      const { nombreRuta, idZona, idEmpleado, fechaPlanificada, detalles } = req.body;
 
       const nuevaRuta = await Ruta.create(
         {
@@ -16,9 +15,9 @@ const rutaController = {
           idZona,
           idEmpleado,
           fechaPlanificada,
-          idEstadoRuta: 1,
+          idEstadoRuta: 1, // 1 = Planificada
         },
-        { transaction: t },
+        { transaction: t }
       );
 
       if (detalles && detalles.length > 0) {
@@ -34,14 +33,14 @@ const rutaController = {
       }
 
       await t.commit();
-      res.status(201).json({
+      return res.status(201).json({
         ok: true,
         message: "Ruta y detalles creados exitosamente",
         idRuta: nuevaRuta.idRuta,
       });
     } catch (error) {
-      await t.rollback();
-      res.status(500).json({
+      if (!t.finished) await t.rollback();
+      return res.status(500).json({
         ok: false,
         message: "Error al procesar la ruta",
         error: error.message,
@@ -49,11 +48,10 @@ const rutaController = {
     }
   },
 
-  // 2. OBTENER TODAS LAS RUTAS (Limpio de duplicados SQL)
+  // 2. Obtener listado general de rutas (Optimizado para evitar duplicidad SQL)
   getAllRutas: async (req, res) => {
     try {
       const rutas = await Ruta.findAll({
-        // Seleccionamos solo los alias de JS para evitar id_zona, id_empleado, etc.
         attributes: [
           "idRuta",
           "nombreRuta",
@@ -78,13 +76,13 @@ const rutaController = {
         ],
         order: [["idRuta", "DESC"]],
       });
-      res.json(rutas);
+      return res.json(rutas);
     } catch (error) {
-      res.status(500).json({ ok: false, message: error.message });
+      return res.status(500).json({ ok: false, message: error.message });
     }
   },
 
-  // 3. OBTENER DETALLE ESPECÍFICO (Con limpieza profunda de JSON)
+  // 3. Obtener detalle profundo de una ruta específica
   getRutaById: async (req, res) => {
     try {
       const { id } = req.params;
@@ -133,13 +131,13 @@ const rutaController = {
 
       if (!ruta) return res.status(404).json({ message: "La ruta no existe" });
 
-      res.json(ruta);
+      return res.json(ruta);
     } catch (error) {
-      res.status(500).json({ ok: false, message: error.message });
+      return res.status(500).json({ ok: false, message: error.message });
     }
   },
 
-  // 4. ACTUALIZAR ESTADO DE LA VISITA
+  // 4. Actualizar el estado de una visita específica (Logística en tiempo real)
   updateVisita: async (req, res) => {
     try {
       const { idDetalleRuta } = req.params;
@@ -151,16 +149,16 @@ const rutaController = {
           fechaLlegadaReal,
           fechaSalidaReal,
         },
-        { where: { idDetalleRuta } },
+        { where: { idDetalleRuta } }
       );
 
       if (updated) {
-        res.json({ message: "Visita actualizada correctamente" });
+        return res.json({ message: "Visita actualizada correctamente" });
       } else {
-        res.status(404).json({ message: "Detalle de ruta no encontrado" });
+        return res.status(404).json({ message: "Detalle de ruta no encontrado" });
       }
     } catch (error) {
-      res.status(500).json({ ok: false, message: error.message });
+      return res.status(500).json({ ok: false, message: error.message });
     }
   },
 };

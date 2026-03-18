@@ -2,9 +2,8 @@ import db from "../models/index.model.js";
 
 const Employee = db.Empleado;
 
-// FIX: 'export const employeeController' → 'const employeeController'
 const employeeController = {
-  // 1. Crear un nuevo empleado (CREATE)
+  // 1. Registro de nuevo personal: Valida y persiste un nuevo empleado en la base de datos.
   create: async (req, res) => {
     try {
       const nuevoEmpleado = await Employee.create(req.body);
@@ -23,7 +22,7 @@ const employeeController = {
     }
   },
 
-  // 2. Obtener todos los empleados (READ ALL)
+  // 2. Consulta global: Recupera todos los registros, permitiendo filtrar opcionalmente solo los empleados con estatus activo.
   findAll: async (req, res) => {
     try {
       const empleados = await Employee.findAll({
@@ -40,7 +39,7 @@ const employeeController = {
     }
   },
 
-  // 3. Obtener un empleado por ID (READ ONE)
+  // 3. Consulta individual: Localiza un empleado específico mediante su clave primaria (ID) y valida su existencia.
   findOne: async (req, res) => {
     try {
       const { id } = req.params;
@@ -63,7 +62,7 @@ const employeeController = {
     }
   },
 
-  // 4. Actualizar un empleado (UPDATE)
+  // 4. Actualización de datos: Modifica los campos enviados en el cuerpo de la petición para el ID especificado y retorna el registro actualizado.
   update: async (req, res) => {
     try {
       const { id } = req.params;
@@ -94,7 +93,7 @@ const employeeController = {
     }
   },
 
-  // 5. Eliminar un empleado (DELETE)
+  // 5. Remoción de registro: Elimina físicamente la fila del empleado de la base de datos basándose en su identificador único.
   delete: async (req, res) => {
     try {
       const { id } = req.params;
@@ -123,5 +122,4 @@ const employeeController = {
   },
 };
 
-// FIX: export default agregado
 export default employeeController;

@@ -38,7 +38,7 @@ export default (sequelize, DataTypes) => {
       total_neto: {
         type: DataTypes.DECIMAL(12, 2),
         allowNull: false,
-        defaultValue: 0.00,
+        defaultValue: 0.0,
         field: "total_neto",
       },
       tipo_pago: {
@@ -51,15 +51,24 @@ export default (sequelize, DataTypes) => {
       tableName: "pedidos",
       timestamps: false,
       freezeTableName: true,
-    }
+    },
   );
 
   Order.associate = (models) => {
-    Order.hasMany(models.OrderDetail, { foreignKey: "id_pedido", as: "detalles" });
-    Order.belongsTo(models.Customer, { foreignKey: "id_cliente", as: "cliente" });
-    // Agregamos relación con vendedor si tienes el modelo Seller
+    Order.hasMany(models.OrderDetail, {
+      foreignKey: "id_pedido",
+      as: "detalles",
+    });
+    Order.belongsTo(models.Customer, {
+      foreignKey: "id_cliente",
+      as: "cliente",
+    });
+
     if (models.Seller) {
-      Order.belongsTo(models.Seller, { foreignKey: "id_vendedor", as: "vendedor" });
+      Order.belongsTo(models.Seller, {
+        foreignKey: "id_vendedor",
+        as: "vendedor",
+      });
     }
   };
 

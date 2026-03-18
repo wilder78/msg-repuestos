@@ -3,52 +3,52 @@ import db from "../models/index.model.js";
 const { Permission } = db;
 
 const permissionController = {
-  // 1. Obtener todos los permisos
+  // 1. Obtener todos los permisos del sistema organizados por módulo
   getAllPermissions: async (req, res) => {
     try {
       const permissions = await Permission.findAll({
         attributes: ["idPermiso", "nombrePermiso", "modulo", "descripcion"],
         order: [["modulo", "ASC"]],
       });
-      res.json(permissions);
+      return res.json(permissions);
     } catch (error) {
-      res.status(500).json({ ok: false, message: error.message });
+      return res.status(500).json({ ok: false, message: error.message });
     }
   },
 
-  // 2. Crear un permiso nuevo
+  // 2. Registrar un nuevo permiso individual
   createPermission: async (req, res) => {
     try {
       const nuevo = await Permission.create(req.body);
-      res.status(201).json({ ok: true, permission: nuevo });
+      return res.status(201).json({ ok: true, permission: nuevo });
     } catch (error) {
-      res.status(500).json({ ok: false, message: error.message });
+      return res.status(500).json({ ok: false, message: error.message });
     }
   },
 
-  // 3. Actualizar un permiso (ESTA ES LA QUE FALTABA)
+  // 3. Actualizar la información de un permiso existente
   updatePermission: async (req, res) => {
     try {
       const { id } = req.params;
-      // El método update devuelve un array: [filasAfectadas]
-      const [updated] = await Permission.update(req.body, {
+      
+      const [updatedRows] = await Permission.update(req.body, {
         where: { idPermiso: id },
       });
 
-      if (updated === 0) {
+      if (updatedRows === 0) {
         return res.status(404).json({
           ok: false,
-          message: "Permiso no encontrado o no hubo cambios",
+          message: "Permiso no encontrado o no se detectaron cambios",
         });
       }
 
-      res.json({ ok: true, message: "Permiso actualizado correctamente" });
+      return res.json({ ok: true, message: "Permiso actualizado correctamente" });
     } catch (error) {
-      res.status(500).json({ ok: false, message: error.message });
+      return res.status(500).json({ ok: false, message: error.message });
     }
   },
 
-  // 4. Eliminar un permiso (OPCIONAL, pero recomendada)
+  // 4. Eliminar un permiso (Borrado físico)
   deletePermission: async (req, res) => {
     try {
       const { id } = req.params;
@@ -57,12 +57,13 @@ const permissionController = {
       });
 
       if (deleted) {
-        res.json({ ok: true, message: "Permiso eliminado correctamente" });
+        return res.json({ ok: true, message: "Permiso eliminado correctamente" });
       } else {
-        res.status(404).json({ ok: false, message: "Permiso no encontrado" });
+        return res.status(404).json({ ok: false, message: "Permiso no encontrado" });
       }
     } catch (error) {
-      res.status(500).json({ ok: false, message: error.message });
+      // Nota: Esto fallará si el permiso está asignado a un Rol (FK Constraint)
+      return res.status(500).json({ ok: false, message: error.message });
     }
   },
 };

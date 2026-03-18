@@ -2,7 +2,7 @@ import { response } from "express";
 import db from "../models/index.model.js";
 
 const zonaController = {
-  // 1. Obtener todas las zonas
+  // 1. Obtener todas las zonas registradas
   getAllZonas: async (req, res = response) => {
     try {
       if (!db.Zona) {
@@ -10,7 +10,6 @@ const zonaController = {
       }
 
       const zonas = await db.Zona.findAll({
-        // Usamos la propiedad del modelo: idZona
         order: [["idZona", "ASC"]],
       });
       return res.status(200).json(zonas);
@@ -24,7 +23,7 @@ const zonaController = {
     }
   },
 
-  // 2. Obtener una zona por ID
+  // 2. Obtener una zona específica por su ID
   getZonaById: async (req, res = response) => {
     const { id } = req.params;
     try {
@@ -45,12 +44,11 @@ const zonaController = {
     }
   },
 
-  // 3. Crear una nueva zona
+  // 3. Crear una nueva zona en el sistema
   createZona: async (req, res = response) => {
     try {
       const { nombre_zona, descripcion, activo } = req.body;
 
-      // Validación manual o dejar que el modelo actúe
       if (!nombre_zona) {
         return res.status(400).json({
           status: "error",
@@ -58,7 +56,6 @@ const zonaController = {
         });
       }
 
-      // Mapeamos los campos de snake_case (body) a camelCase (modelo)
       const nuevaZona = await db.Zona.create({
         nombreZona: nombre_zona,
         descripcion: descripcion,
@@ -71,10 +68,9 @@ const zonaController = {
         data: nuevaZona,
       });
     } catch (error) {
-      const errorMsg =
-        error.name === "SequelizeValidationError"
-          ? error.errors.map((e) => e.message).join(", ")
-          : error.message;
+      const errorMsg = error.name === "SequelizeValidationError"
+        ? error.errors.map((e) => e.message).join(", ")
+        : error.message;
 
       return res.status(400).json({
         status: "error",
@@ -84,14 +80,13 @@ const zonaController = {
     }
   },
 
-  // 4. Actualizar zona
+  // 4. Actualizar los datos de una zona existente
   updateZona: async (req, res = response) => {
     const { id } = req.params;
     try {
       const { nombre_zona, descripcion, activo } = req.body;
-
-      // Creamos un objeto de actualización mapeado
       const dataToUpdate = {};
+
       if (nombre_zona) dataToUpdate.nombreZona = nombre_zona;
       if (descripcion !== undefined) dataToUpdate.descripcion = descripcion;
       if (activo !== undefined) dataToUpdate.activo = activo;
@@ -122,15 +117,13 @@ const zonaController = {
     }
   },
 
-  // 5. Desactivar zona (Borrado lógico)
+  // 5. Desactivar una zona (Borrado lógico)
   deleteZona: async (req, res = response) => {
     const { id } = req.params;
     try {
       const [result] = await db.Zona.update(
         { activo: 0 },
-        {
-          where: { idZona: id },
-        },
+        { where: { idZona: id } }
       );
 
       if (result === 0) {

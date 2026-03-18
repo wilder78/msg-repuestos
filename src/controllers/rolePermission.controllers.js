@@ -3,7 +3,7 @@ import db from "../models/index.model.js";
 const { RolePermission, Rol, Permission } = db;
 
 const rolePermissionController = {
-  // 1. OBTENER TODAS LAS ASIGNACIONES (Soluciona el error 404 en la raíz)
+  // 1. Obtener todas las asignaciones de permisos a roles
   getAllAssignments: async (req, res) => {
     try {
       const assignments = await RolePermission.findAll({
@@ -20,41 +20,40 @@ const rolePermissionController = {
           },
         ],
       });
-      res.json(assignments);
+      return res.json(assignments);
     } catch (error) {
-      res.status(500).json({ ok: false, message: error.message });
+      return res.status(500).json({ ok: false, message: error.message });
     }
   },
 
-  // 2. ASIGNAR PERMISO A UN ROL
+  // 2. Asignar un permiso nuevo a un rol específico
   assignPermission: async (req, res) => {
     try {
       const { idRol, idPermiso } = req.body;
 
-      // Verificar duplicados
       const existe = await RolePermission.findOne({
         where: { idRol, idPermiso },
       });
 
       if (existe) {
-        return res
-          .status(400)
-          .json({ message: "El permiso ya está asignado a este rol" });
+        return res.status(400).json({ 
+          message: "El permiso ya está asignado a este rol" 
+        });
       }
 
       const nuevaAsignacion = await RolePermission.create({ idRol, idPermiso });
 
-      res.status(201).json({
+      return res.status(201).json({
         ok: true,
         message: "Permiso asignado correctamente",
         data: nuevaAsignacion,
       });
     } catch (error) {
-      res.status(500).json({ ok: false, message: error.message });
+      return res.status(500).json({ ok: false, message: error.message });
     }
   },
 
-  // 3. REVOCAR PERMISO (Quitar asignación)
+  // 3. Revocar (eliminar) la relación entre un rol y un permiso
   revokePermission: async (req, res) => {
     try {
       const { idRol, idPermiso } = req.body;
@@ -64,16 +63,16 @@ const rolePermissionController = {
       });
 
       if (eliminado) {
-        res.json({ ok: true, message: "Permiso revocado correctamente" });
+        return res.json({ ok: true, message: "Permiso revocado correctamente" });
       } else {
-        res.status(404).json({ message: "La asignación no existe" });
+        return res.status(404).json({ message: "La asignación no existe" });
       }
     } catch (error) {
-      res.status(500).json({ ok: false, message: error.message });
+      return res.status(500).json({ ok: false, message: error.message });
     }
   },
 
-  // 4. OBTENER PERMISOS DE UN ROL ESPECÍFICO
+  // 4. Obtener todos los permisos asociados a un rol específico
   getPermissionsByRole: async (req, res) => {
     try {
       const { idRol } = req.params;
@@ -89,9 +88,9 @@ const rolePermissionController = {
         ],
       });
 
-      res.json(permisos);
+      return res.json(permisos);
     } catch (error) {
-      res.status(500).json({ ok: false, message: error.message });
+      return res.status(500).json({ ok: false, message: error.message });
     }
   },
 };
