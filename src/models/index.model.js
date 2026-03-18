@@ -1,7 +1,7 @@
 import { Sequelize, DataTypes } from "sequelize";
 import sequelize from "../config/mysql.config.js";
 
-// Importación de Modelos existentes
+// Importación de Modelos base
 import UserModel from "./user.model.js";
 import RolModel from "./rol.model.js";
 import TipoDocumentoModel from "./document_type.model.js";
@@ -27,9 +27,13 @@ import SaleModel from "./sale.model.js";
 import ReturnModel from "./return.model.js";
 import ReturnDetailModel from "./returnDetail.model.js";
 
-// 5. IMPORTACIÓN DE MODELOS DE RUTAS (LOGÍSTICA) - NUEVO
+// 5. IMPORTACIÓN DE MODELOS DE RUTAS (LOGÍSTICA)
 import RutaModel from "./ruta.model.js";
 import RutaDetailModel from "./rutaDetail.model.js";
+
+// 6. IMPORTACIÓN DE SEGURIDAD (ROLES Y PERMISOS) - NUEVO
+import PermissionModel from "./permission.model.js";
+import RolePermissionModel from "./rolePermission.model.js";
 
 const db = {};
 
@@ -62,9 +66,13 @@ db.Sale = SaleModel(sequelize, DataTypes);
 db.CustomerReturn = ReturnModel(sequelize, DataTypes);
 db.ReturnDetail = ReturnDetailModel(sequelize, DataTypes);
 
-// INICIALIZACIÓN DE RUTAS - NUEVO
+// INICIALIZACIÓN DE RUTAS
 db.Ruta = RutaModel(sequelize, DataTypes);
 db.RutaDetail = RutaDetailModel(sequelize, DataTypes);
+
+// INICIALIZACIÓN DE SEGURIDAD (NUEVO)
+db.Permission = PermissionModel(sequelize, DataTypes);
+db.RolePermission = RolePermissionModel(sequelize, DataTypes);
 
 // Configuración de Asociaciones
 Object.keys(db).forEach((modelName) => {
@@ -97,12 +105,16 @@ export default db;
 // import OrderModel from "./order.model.js";
 // import OrderDetailModel from "./order_detail.model.js";
 
-// // 3. IMPORTACIÓN DE MODELO DE VENTAS (NUEVO - Vital para devoluciones)
+// // 3. IMPORTACIÓN DE MODELO DE VENTAS
 // import SaleModel from "./sale.model.js";
 
 // // 4. IMPORTACIÓN DE MODELOS DE DEVOLUCIONES
 // import ReturnModel from "./return.model.js";
 // import ReturnDetailModel from "./returnDetail.model.js";
+
+// // 5. IMPORTACIÓN DE MODELOS DE RUTAS (LOGÍSTICA) - NUEVO
+// import RutaModel from "./ruta.model.js";
+// import RutaDetailModel from "./rutaDetail.model.js";
 
 // const db = {};
 
@@ -110,33 +122,36 @@ export default db;
 // db.sequelize = sequelize;
 
 // // Inicialización de modelos base
-// db.Usuario       = UserModel(sequelize, DataTypes);
-// db.Rol           = RolModel(sequelize, DataTypes);
+// db.Usuario = UserModel(sequelize, DataTypes);
+// db.Rol = RolModel(sequelize, DataTypes);
 // db.TipoDocumento = TipoDocumentoModel(sequelize, DataTypes);
-// db.Empleado      = EmployeeModel(sequelize, DataTypes);
-// db.Supplier      = SupplierModel(sequelize, DataTypes);
-// db.Zona          = ZonaModel(sequelize, DataTypes);
-// db.Customer      = CustomerModel(sequelize, DataTypes);
-// db.Category      = CategoryModel(sequelize, DataTypes);
-// db.Product       = ProductModel(sequelize, DataTypes);
+// db.Empleado = EmployeeModel(sequelize, DataTypes);
+// db.Supplier = SupplierModel(sequelize, DataTypes);
+// db.Zona = ZonaModel(sequelize, DataTypes);
+// db.Customer = CustomerModel(sequelize, DataTypes);
+// db.Category = CategoryModel(sequelize, DataTypes);
+// db.Product = ProductModel(sequelize, DataTypes);
 
 // // INICIALIZACIÓN DE COMPRAS
-// db.Purchase       = PurchaseModel(sequelize, DataTypes);
+// db.Purchase = PurchaseModel(sequelize, DataTypes);
 // db.PurchaseDetail = PurchaseDetailModel(sequelize, DataTypes);
 
 // // INICIALIZACIÓN DE PEDIDOS
-// db.Order          = OrderModel(sequelize, DataTypes);
-// db.OrderDetail    = OrderDetailModel(sequelize, DataTypes);
+// db.Order = OrderModel(sequelize, DataTypes);
+// db.OrderDetail = OrderDetailModel(sequelize, DataTypes);
 
-// // INICIALIZACIÓN DE VENTAS (Añadido para resolver el error de FK)
-// db.Sale           = SaleModel(sequelize, DataTypes);
+// // INICIALIZACIÓN DE VENTAS
+// db.Sale = SaleModel(sequelize, DataTypes);
 
 // // INICIALIZACIÓN DE DEVOLUCIONES
 // db.CustomerReturn = ReturnModel(sequelize, DataTypes);
-// db.ReturnDetail   = ReturnDetailModel(sequelize, DataTypes);
+// db.ReturnDetail = ReturnDetailModel(sequelize, DataTypes);
+
+// // INICIALIZACIÓN DE RUTAS - NUEVO
+// db.Ruta = RutaModel(sequelize, DataTypes);
+// db.RutaDetail = RutaDetailModel(sequelize, DataTypes);
 
 // // Configuración de Asociaciones
-// // Este bloque ejecuta la función associate() de cada modelo (incluyendo Sale y CustomerReturn)
 // Object.keys(db).forEach((modelName) => {
 //   if (db[modelName] && db[modelName].associate) {
 //     db[modelName].associate(db);

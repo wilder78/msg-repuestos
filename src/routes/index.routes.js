@@ -18,8 +18,12 @@ import orderRoutes from "./order.routes.js";
 // 3. IMPORTACIÓN DE LAS RUTAS DE DEVOLUCIONES
 import returnRoutes from "./return.routes.js";
 
-// 4. IMPORTACIÓN DE LAS RUTAS DE LOGÍSTICA (NUEVO)
+// 4. IMPORTACIÓN DE LAS RUTAS DE LOGÍSTICA
 import rutaRoutes from "./ruta.routes.js";
+
+// 5. IMPORTACIÓN DE SEGURIDAD (NUEVO)
+import permissionRoutes from "./permission.routes.js";
+import rolePermissionRoutes from "./rolePermission.routes.js";
 
 // ... otras importaciones
 import saleRoutes from "./sale.routes.js";
@@ -34,6 +38,8 @@ const router = Router();
 // --- Usuarios y Seguridad ---
 router.use("/users", userRoutes);
 router.use("/roles", rolRoutes);
+router.use("/permissions", permissionRoutes); // Catálogo de permisos
+router.use("/role-permissions", rolePermissionRoutes); // Asignaciones de permisos a roles
 
 // --- Maestros / Tablas de Referencia ---
 router.use("/tipo-documento", tipoDocumentoRoutes);
@@ -56,7 +62,7 @@ router.use("/orders", orderRoutes);
 // Gestión de Devoluciones (Ajuste de Stock)
 router.use("/returns", returnRoutes);
 
-// --- 5. GESTIÓN DE LOGÍSTICA Y DESPACHOS (NUEVO) ---
+// --- GESTIÓN DE LOGÍSTICA Y DESPACHOS ---
 router.use("/rutas", rutaRoutes);
 
 // ...
@@ -82,8 +88,11 @@ export default router;
 // // 2. IMPORTACIÓN DE LAS RUTAS DE PEDIDOS
 // import orderRoutes from "./order.routes.js";
 
-// // 3. IMPORTACIÓN DE LAS RUTAS DE DEVOLUCIONES (NUEVO)
+// // 3. IMPORTACIÓN DE LAS RUTAS DE DEVOLUCIONES
 // import returnRoutes from "./return.routes.js";
+
+// // 4. IMPORTACIÓN DE LAS RUTAS DE LOGÍSTICA (NUEVO)
+// import rutaRoutes from "./ruta.routes.js";
 
 // // ... otras importaciones
 // import saleRoutes from "./sale.routes.js";
@@ -110,15 +119,18 @@ export default router;
 // router.use("/customers", customerRoutes);
 // router.use("/products", productRoutes);
 
-// // --- 4. REGISTRO DE MOVIMIENTOS / TRANSACCIONES ---
+// // --- REGISTRO DE MOVIMIENTOS / TRANSACCIONES ---
 // // Gestión de Compras (Entrada de Stock)
 // router.use("/shopping", shoppingRoutes);
 
 // // Gestión de Pedidos / Ventas (Salida de Stock)
 // router.use("/orders", orderRoutes);
 
-// // Gestión de Devoluciones (Ajuste de Stock - NUEVO)
+// // Gestión de Devoluciones (Ajuste de Stock)
 // router.use("/returns", returnRoutes);
+
+// // --- 5. GESTIÓN DE LOGÍSTICA Y DESPACHOS (NUEVO) ---
+// router.use("/rutas", rutaRoutes);
 
 // // ...
 // router.use("/sales", saleRoutes);
