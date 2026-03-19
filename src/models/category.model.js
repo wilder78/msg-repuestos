@@ -6,7 +6,7 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        field: "id_categoria", // Nombre de la columna en la tabla
+        field: "id_categoria", 
       },
       nombre_categoria: {
         type: DataTypes.STRING(50),
@@ -29,7 +29,7 @@ export default (sequelize, DataTypes) => {
       },
     },
     {
-      tableName: "categorias", // Nombre exacto de la tabla en MySQL
+      tableName: "categorias",
       timestamps: false,
       freezeTableName: true,
     }

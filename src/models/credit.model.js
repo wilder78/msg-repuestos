@@ -51,7 +51,7 @@ export default (sequelize, DataTypes) => {
   );
 
   Credit.associate = (models) => {
-    // Un crédito pertenece a un Cliente
+    
     Credit.belongsTo(models.Customer, {
       foreignKey: "id_cliente",
       as: "cliente",
