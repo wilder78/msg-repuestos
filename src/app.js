@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import path from "path";
-import { fileURLToPath } from "url"; 
+import { fileURLToPath } from "url";
 import "dotenv/config";
 import indexRoutes from "./routes/index.routes.js";
 import db from "./models/index.model.js";
@@ -16,8 +16,9 @@ const __dirname = path.dirname(__filename);
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173", 
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: "http://localhost:5173", // URL de tu frontend
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   }),
 );

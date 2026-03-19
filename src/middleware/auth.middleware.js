@@ -6,7 +6,9 @@ export const verifyToken = (req, res, next) => {
   const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
-    return res.status(403).json({ error: "Acceso denegado. No se proporcionó un token." });
+    return res
+      .status(403)
+      .json({ error: "Acceso denegado. No se proporcionó un token." });
   }
 
   try {
