@@ -14,7 +14,7 @@ router.use(verifyToken);
 router.get("/", userController.getAllUsers);
 router.get("/:id", userController.getUserById);
 router.get("/email/:email", userController.getUserByEmail);
-router.put("/:idUsuario", userController.updateUser);
+router.put("/:id", userController.updateUser);
 router.delete("/:id", userController.deleteUser);
 
 export default router;

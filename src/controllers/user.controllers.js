@@ -13,7 +13,8 @@ const sanitizeUser = (user) => {
 // 1. Crear un nuevo usuario
 export const createUser = async (req, res) => {
   try {
-    const { nombreUsuario, email, password, idEstado, idRol, idCliente } = req.body;
+    const { nombreUsuario, email, password, idEstado, idRol, idCliente } =
+      req.body;
 
     if (!nombreUsuario || !email || !password) {
       return res.status(400).json({
@@ -73,7 +74,7 @@ export const loginUser = async (req, res) => {
     const token = jwt.sign(
       { idUsuario: user.idUsuario, idRol: user.idRol },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES || "1h" }
+      { expiresIn: process.env.JWT_EXPIRES || "1h" },
     );
 
     return res.status(200).json({
@@ -161,19 +162,32 @@ export const updateUser = async (req, res) => {
     const { id } = req.params;
     const { nombreUsuario, email, password, idEstado, idRol } = req.body;
 
-    const user = await Usuario.findByPk(id);
+    // 1. Buscar usuario
+    const user = await Usuario.findOne({
+      where: { idUsuario: id },
+    });
 
     if (!user) {
-      return res.status(404).json({ error: "Usuario no encontrado." });
+      return res
+        .status(404)
+        .json({ error: `Usuario con ID ${id} no encontrado.` });
     }
 
+    // 2. Mapeo de datos (USANDO LOS NOMBRES DEL MODELO)
     const updateData = {};
     if (nombreUsuario) updateData.nombreUsuario = nombreUsuario;
     if (email) updateData.email = email.toLowerCase().trim();
     if (idEstado) updateData.idEstado = idEstado;
-    if (idRol) updateData.idRol = idRol;
-    if (password) updateData.passwordHash = await bcrypt.hash(password, 10);
 
+    // CORRECCIÓN AQUÍ: Usar idRol (nombre del modelo), no id_rol
+    if (idRol) updateData.idRol = idRol;
+
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.passwordHash = await bcrypt.hash(password, salt);
+    }
+
+    // 3. Ejecutar actualización
     await user.update(updateData);
 
     return res.status(200).json({
@@ -181,13 +195,19 @@ export const updateUser = async (req, res) => {
       data: sanitizeUser(user),
     });
   } catch (error) {
+    // Es vital imprimir el error completo para debuggear
     console.error("❌ Error al actualizar usuario:", error);
+
     if (error.name === "SequelizeUniqueConstraintError") {
       return res.status(409).json({
         error: "El email o nombre de usuario ya está en uso.",
       });
     }
-    return res.status(500).json({ error: "Error interno del servidor." });
+
+    return res.status(500).json({
+      error: "Error interno del servidor.",
+      detail: error.message, // Esto te ayudará a ver el error en Postman
+    });
   }
 };
 
