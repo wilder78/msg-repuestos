@@ -12,31 +12,37 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
         field: "id_rol",
-        // Se elimina el bloque 'references' manual para evitar duplicidad
       },
       idPermiso: {
         type: DataTypes.INTEGER,
         allowNull: false,
         field: "id_permiso",
-        // Se elimina el bloque 'references' manual para evitar duplicidad
+      },
+      // NUEVO CAMPO: Registro de fecha
+      fechaAsignacion: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW, // Se genera automáticamente al insertar
+        field: "fecha_asignacion",
       },
     },
     {
       tableName: "roles_permisos",
-      timestamps: false,
+      timestamps: false, // Lo mantenemos en false para controlar manualmente la columna
       freezeTableName: true,
     },
   );
 
   RolePermission.associate = (models) => {
-    // IMPORTANTE: foreignKey debe apuntar al nombre del atributo (idRol), no al field.
+    // Asociación con Rol
     RolePermission.belongsTo(models.Rol, {
-      foreignKey: "idRol",
+      foreignKey: "idRol", // Atributo definido arriba
       as: "rol",
     });
 
+    // Asociación con Permission
     RolePermission.belongsTo(models.Permission, {
-      foreignKey: "idPermiso",
+      foreignKey: "idPermiso", // Atributo definido arriba
       as: "permiso",
     });
   };

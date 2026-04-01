@@ -3,15 +3,23 @@ import db from "../models/index.model.js";
 const { RolePermission, Rol, Permission } = db;
 
 const rolePermissionController = {
-  // 1. Obtener todas las asignaciones de permisos a roles
+  // 1. Obtener todas las asignaciones con sus detalles y FECHA
   getAllAssignments: async (req, res) => {
     try {
       const assignments = await RolePermission.findAll({
+        // Incluimos explícitamente los atributos que queremos de la tabla intermedia
+        attributes: [
+          "idRolesPermisos",
+          "idRol",
+          "idPermiso",
+          "fechaAsignacion",
+        ],
         include: [
           {
             model: Rol,
             as: "rol",
-            attributes: ["nombre_rol"],
+            // Ajustado a 'nombreRol' si seguiste la convención CamelCase del modelo
+            attributes: ["nombreRol"],
           },
           {
             model: Permission,
@@ -19,6 +27,7 @@ const rolePermissionController = {
             attributes: ["nombrePermiso", "modulo"],
           },
         ],
+        order: [["fechaAsignacion", "DESC"]], // Opcional: ver los más recientes primero
       });
       return res.json(assignments);
     } catch (error) {
@@ -26,21 +35,29 @@ const rolePermissionController = {
     }
   },
 
-  // 2. Asignar un permiso nuevo a un rol específico
+  // 2. Asignar un permiso nuevo (La fecha se genera sola)
   assignPermission: async (req, res) => {
     try {
       const { idRol, idPermiso } = req.body;
+
+      // Validación de datos de entrada
+      if (!idRol || !idPermiso) {
+        return res
+          .status(400)
+          .json({ message: "idRol e idPermiso son obligatorios" });
+      }
 
       const existe = await RolePermission.findOne({
         where: { idRol, idPermiso },
       });
 
       if (existe) {
-        return res.status(400).json({ 
-          message: "El permiso ya está asignado a este rol" 
+        return res.status(400).json({
+          message: "El permiso ya está asignado a este rol",
         });
       }
 
+      // La fechaAsignacion se registrará automáticamente por el defaultValue del modelo
       const nuevaAsignacion = await RolePermission.create({ idRol, idPermiso });
 
       return res.status(201).json({
@@ -53,7 +70,7 @@ const rolePermissionController = {
     }
   },
 
-  // 3. Revocar (eliminar) la relación entre un rol y un permiso
+  // 3. Revocar (eliminar) la relación
   revokePermission: async (req, res) => {
     try {
       const { idRol, idPermiso } = req.body;
@@ -63,7 +80,10 @@ const rolePermissionController = {
       });
 
       if (eliminado) {
-        return res.json({ ok: true, message: "Permiso revocado correctamente" });
+        return res.json({
+          ok: true,
+          message: "Permiso revocado correctamente",
+        });
       } else {
         return res.status(404).json({ message: "La asignación no existe" });
       }
@@ -72,18 +92,19 @@ const rolePermissionController = {
     }
   },
 
-  // 4. Obtener todos los permisos asociados a un rol específico
+  // 4. Obtener permisos de un rol incluyendo la fecha de asignación
   getPermissionsByRole: async (req, res) => {
     try {
       const { idRol } = req.params;
 
       const permisos = await RolePermission.findAll({
         where: { idRol },
+        attributes: ["fechaAsignacion"], // Traemos la fecha de la tabla intermedia
         include: [
           {
             model: Permission,
             as: "permiso",
-            attributes: ["nombrePermiso", "modulo", "descripcion"],
+            attributes: ["idPermiso", "nombrePermiso", "modulo", "descripcion"],
           },
         ],
       });
