@@ -12,19 +12,13 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
         field: "id_rol",
-        references: {
-          model: "roles",
-          key: "id_rol",
-        },
+        // Se elimina el bloque 'references' manual para evitar duplicidad
       },
       idPermiso: {
         type: DataTypes.INTEGER,
         allowNull: false,
         field: "id_permiso",
-        references: {
-          model: "permisos",
-          key: "id_permiso",
-        },
+        // Se elimina el bloque 'references' manual para evitar duplicidad
       },
     },
     {
@@ -35,13 +29,14 @@ export default (sequelize, DataTypes) => {
   );
 
   RolePermission.associate = (models) => {
+    // IMPORTANTE: foreignKey debe apuntar al nombre del atributo (idRol), no al field.
     RolePermission.belongsTo(models.Rol, {
-      foreignKey: "id_rol",
+      foreignKey: "idRol",
       as: "rol",
     });
 
     RolePermission.belongsTo(models.Permission, {
-      foreignKey: "id_permiso",
+      foreignKey: "idPermiso",
       as: "permiso",
     });
   };

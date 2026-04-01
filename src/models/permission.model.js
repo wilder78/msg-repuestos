@@ -6,7 +6,7 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        field: "id_permiso",
+        field: "id_permiso", // Mapeo físico en DB
       },
       nombrePermiso: {
         type: DataTypes.STRING(100),
@@ -32,10 +32,13 @@ export default (sequelize, DataTypes) => {
   );
 
   Permission.associate = (models) => {
+    // CORRECCIÓN DE CLAVES:
+    // foreignKey: Es la llave de ESTE modelo (Permission) en la tabla intermedia.
+    // otherKey: Es la llave del OTRO modelo (Rol) en la tabla intermedia.
     Permission.belongsToMany(models.Rol, {
       through: models.RolePermission,
-      foreignKey: "id_permiso",
-      otherKey: "id_rol",
+      foreignKey: "idPermiso", // Debe coincidir con el ATRIBUTO en RolePermission
+      otherKey: "idRol", // Debe coincidir con el ATRIBUTO en RolePermission
       as: "roles",
     });
   };

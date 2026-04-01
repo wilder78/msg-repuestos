@@ -6,7 +6,7 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        field: "id_rol",
+        field: "id_rol", // Mapeo a DB
       },
       nombreRol: {
         type: DataTypes.STRING(50),
@@ -29,10 +29,23 @@ export default (sequelize, DataTypes) => {
   );
 
   Rol.associate = (models) => {
+    // 1. Relación Uno a Muchos con Usuarios
+    // Nota: El foreignKey "idRol" debe existir como atributo en usuario.model.js
     if (models.Usuario) {
       Rol.hasMany(models.Usuario, {
-        foreignKey: "id_rol",
+        foreignKey: "idRol",
         as: "usuarios",
+      });
+    }
+
+    // 2. Relación Muchos a Muchos con Permisos (vía tabla intermedia)
+    // Usamos los nombres de los atributos de role_permission.model.js
+    if (models.Permission && models.RolePermission) {
+      Rol.belongsToMany(models.Permission, {
+        through: models.RolePermission,
+        foreignKey: "idRol", // Atributo 'idRol' en RolePermission
+        otherKey: "idPermiso", // Atributo 'idPermiso' en RolePermission
+        as: "permisos",
       });
     }
   };
