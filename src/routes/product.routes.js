@@ -4,24 +4,52 @@ import { verifyToken } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-// Middleware global para proteger el catálogo de productos
-router.use(verifyToken);
+// --- Endpoints Públicos (Sin Token) ---
 
-// --- Endpoints de Productos ---
-
-// Obtener todos los productos (incluye categorías)
+// Obtener todos los productos
 router.get("/", productController.getAllProducts);
 
 // Obtener un producto por ID
 router.get("/:id", productController.getProductById);
 
-// Registrar nuevo producto (Validación de categoría interna)
-router.post("/", productController.createProduct);
 
-// Actualizar producto (referencia, precios, stocks)
-router.put("/:id", productController.updateProduct);
+// --- Endpoints Privados (Requieren verifyToken) ---
 
-// Desactivar producto (Borrado lógico: activo = 0)
-router.delete("/:id", productController.deleteProduct);
+// Registrar nuevo producto
+router.post("/", verifyToken, productController.createProduct);
+
+// Actualizar producto
+router.put("/:id", verifyToken, productController.updateProduct);
+
+// Desactivar producto
+router.delete("/:id", verifyToken, productController.deleteProduct);
 
 export default router;
+
+// import { Router } from "express";
+// import productController from "../controllers/product.controllers.js";
+// import { verifyToken } from "../middleware/auth.middleware.js";
+
+// const router = Router();
+
+// // Middleware global para proteger el catálogo de productos
+// router.use(verifyToken);
+
+// // --- Endpoints de Productos ---
+
+// // Obtener todos los productos (incluye categorías)
+// get("/", productController.getAllProducts);
+
+// // Obtener un producto por ID
+// router.get("/:id", productController.getProductById);
+
+// // Registrar nuevo producto (Validación de categoría interna)
+// router.post("/", productController.createProduct);
+
+// // Actualizar producto (referencia, precios, stocks)
+// router.put("/:id", productController.updateProduct);
+
+// // Desactivar producto (Borrado lógico: activo = 0)
+// router.delete("/:id", productController.deleteProduct);
+
+// export default router;
