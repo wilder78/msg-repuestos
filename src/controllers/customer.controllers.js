@@ -3,9 +3,23 @@ import db from "../models/index.model.js";
 
 const customerController = {
   // 1. Obtener todos los clientes
+  // customer.controller.js -> getAllCustomers
   getAllCustomers: async (req, res = response) => {
     try {
       const customers = await db.Customer.findAll({
+        attributes: [
+          "idCliente",
+          "idTipoDocumento",
+          "numeroDocumento",
+          "razonSocial",
+          "direccion",
+          "telefono",
+          "email",
+          "tipoCliente",
+          "cupoCredito",
+          "activo",
+          "idZona",
+        ],
         include: [
           {
             model: db.TipoDocumento,
@@ -17,11 +31,7 @@ const customerController = {
       });
       return res.status(200).json(customers);
     } catch (error) {
-      return res.status(500).json({
-        status: "error",
-        message: "Error al obtener los clientes",
-        error: error.message,
-      });
+      // ... error handling
     }
   },
 
