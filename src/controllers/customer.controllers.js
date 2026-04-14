@@ -3,7 +3,6 @@ import db from "../models/index.model.js";
 
 const customerController = {
   // 1. Obtener todos los clientes
-  // customer.controller.js -> getAllCustomers
   getAllCustomers: async (req, res = response) => {
     try {
       const customers = await db.Customer.findAll({
@@ -29,9 +28,18 @@ const customerController = {
         ],
         order: [["idCliente", "ASC"]],
       });
+
+      // Retornamos directamente el array para que el frontend lo procese sin problemas
       return res.status(200).json(customers);
     } catch (error) {
-      // ... error handling
+      console.error("Error al obtener clientes:", error);
+
+      // Enviamos un objeto de error estructurado
+      return res.status(500).json({
+        ok: false,
+        message: "Error interno del servidor al obtener la lista de clientes",
+        error: process.env.NODE_ENV === "development" ? error.message : {},
+      });
     }
   },
 
