@@ -6,7 +6,7 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        field: "id_permiso", // Mapeo físico en DB
+        field: "id_permiso",
       },
       nombrePermiso: {
         type: DataTypes.STRING(100),
@@ -23,6 +23,14 @@ export default (sequelize, DataTypes) => {
         allowNull: true,
         field: "descripcion",
       },
+      // Agregamos la columna tal como está en tu tabla 'permisos'
+      idEstado: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 1,
+        field: "id_estado",
+        // Eliminamos 'references' porque la tabla estados aún no existe
+      },
     },
     {
       tableName: "permisos",
@@ -32,15 +40,16 @@ export default (sequelize, DataTypes) => {
   );
 
   Permission.associate = (models) => {
-    // CORRECCIÓN DE CLAVES:
-    // foreignKey: Es la llave de ESTE modelo (Permission) en la tabla intermedia.
-    // otherKey: Es la llave del OTRO modelo (Rol) en la tabla intermedia.
+    // Mantén solo la relación Muchos a Muchos con Roles
     Permission.belongsToMany(models.Rol, {
       through: models.RolePermission,
-      foreignKey: "idPermiso", // Debe coincidir con el ATRIBUTO en RolePermission
-      otherKey: "idRol", // Debe coincidir con el ATRIBUTO en RolePermission
+      foreignKey: "idPermiso",
+      otherKey: "idRol",
       as: "roles",
     });
+
+    // NOTA: No agregamos Permission.belongsTo(models.Estado)
+    // hasta que decidas crear ese modelo y esa tabla.
   };
 
   return Permission;
