@@ -162,10 +162,7 @@ export const updateUser = async (req, res) => {
     const { id } = req.params;
     const { nombreUsuario, email, password, idEstado, idRol } = req.body;
 
-    // 1. Buscar usuario
-    const user = await Usuario.findOne({
-      where: { idUsuario: id },
-    });
+    const user = await Usuario.findOne({ where: { idUsuario: id } });
 
     if (!user) {
       return res
@@ -173,13 +170,10 @@ export const updateUser = async (req, res) => {
         .json({ error: `Usuario con ID ${id} no encontrado.` });
     }
 
-    // 2. Mapeo de datos (USANDO LOS NOMBRES DEL MODELO)
     const updateData = {};
     if (nombreUsuario) updateData.nombreUsuario = nombreUsuario;
     if (email) updateData.email = email.toLowerCase().trim();
     if (idEstado) updateData.idEstado = idEstado;
-
-    // CORRECCIÓN AQUÍ: Usar idRol (nombre del modelo), no id_rol
     if (idRol) updateData.idRol = idRol;
 
     if (password) {
@@ -187,7 +181,6 @@ export const updateUser = async (req, res) => {
       updateData.passwordHash = await bcrypt.hash(password, salt);
     }
 
-    // 3. Ejecutar actualización
     await user.update(updateData);
 
     return res.status(200).json({
@@ -195,39 +188,58 @@ export const updateUser = async (req, res) => {
       data: sanitizeUser(user),
     });
   } catch (error) {
-    // Es vital imprimir el error completo para debuggear
     console.error("❌ Error al actualizar usuario:", error);
-
     if (error.name === "SequelizeUniqueConstraintError") {
-      return res.status(409).json({
-        error: "El email o nombre de usuario ya está en uso.",
-      });
+      return res
+        .status(409)
+        .json({ error: "El email o nombre de usuario ya está en uso." });
     }
-
-    return res.status(500).json({
-      error: "Error interno del servidor.",
-      detail: error.message, // Esto te ayudará a ver el error en Postman
-    });
+    return res
+      .status(500)
+      .json({ error: "Error interno del servidor.", detail: error.message });
   }
 };
 
-// 7. Desactivar un usuario (Borrado lógico)
+// 7. Eliminar un usuario (Borrado físico, excepto Master)
 export const deleteUser = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
+
+    // Proteger al usuario Master por ID de parámetro
+    if (id === 1) {
+      return res
+        .status(403)
+        .json({ error: "El usuario Master no puede ser eliminado." });
+    }
+
     const user = await Usuario.findByPk(id);
 
     if (!user) {
       return res.status(404).json({ error: "Usuario no encontrado." });
     }
 
-    await user.update({ idEstado: 2 });
+    // Doble verificación con el registro real de la BD
+    if (user.idUsuario === 1 || user.idRol === 1) {
+      return res
+        .status(403)
+        .json({ error: "El usuario Master no puede ser eliminado." });
+    }
 
-    return res.status(200).json({
-      message: "Usuario desactivado exitosamente",
-    });
+    // Eliminación física del registro
+    await user.destroy();
+
+    return res.status(200).json({ message: "Usuario eliminado exitosamente." });
   } catch (error) {
     console.error("❌ Error al eliminar usuario:", error);
+
+    // Error de FK: el usuario tiene registros relacionados en otras tablas
+    if (error.name === "SequelizeForeignKeyConstraintError") {
+      return res.status(409).json({
+        error:
+          "No se puede eliminar el usuario porque tiene registros asociados en el sistema.",
+      });
+    }
+
     return res.status(500).json({ error: "Error interno del servidor." });
   }
 };
