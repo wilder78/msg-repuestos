@@ -170,6 +170,28 @@ export const updateUser = async (req, res) => {
         .json({ error: `Usuario con ID ${id} no encontrado.` });
     }
 
+    // ─── BLOQUE DE SEGURIDAD PARA USUARIO MASTER ──────────────────────────────
+    // Usamos Number(id) para asegurar una comparación numérica limpia
+    if (Number(id) === 1) {
+      // 1. Impedir la inactivación
+      if (idEstado !== undefined && Number(idEstado) === 2) {
+        return res.status(403).json({
+          error:
+            "Restricción de seguridad: El usuario Master debe permanecer activo.",
+        });
+      }
+
+      // 2. Impedir el cambio de Rol (Validación estricta)
+      // Si idRol viene en la petición y es diferente al que ya tiene
+      if (idRol !== undefined && Number(idRol) !== user.idRol) {
+        return res.status(403).json({
+          error:
+            "Restricción de seguridad: No se permite modificar el Rol del usuario Master.",
+        });
+      }
+    }
+    // ──────────────────────────────────────────────────────────────────────────
+
     const updateData = {};
     if (nombreUsuario) updateData.nombreUsuario = nombreUsuario;
     if (email) updateData.email = email.toLowerCase().trim();
@@ -181,6 +203,7 @@ export const updateUser = async (req, res) => {
       updateData.passwordHash = await bcrypt.hash(password, salt);
     }
 
+    // Actualizar registro
     await user.update(updateData);
 
     return res.status(200).json({
@@ -189,58 +212,63 @@ export const updateUser = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error al actualizar usuario:", error);
+
     if (error.name === "SequelizeUniqueConstraintError") {
       return res
         .status(409)
         .json({ error: "El email o nombre de usuario ya está en uso." });
     }
+
     return res
       .status(500)
       .json({ error: "Error interno del servidor.", detail: error.message });
   }
 };
 
-// 7. Eliminar un usuario (Borrado físico, excepto Master)
+// 7. Eliminar un usuario (Borrado físico con protección por Rol)
 export const deleteUser = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
 
-    // Proteger al usuario Master por ID de parámetro
-    if (id === 1) {
-      return res
-        .status(403)
-        .json({ error: "El usuario Master no puede ser eliminado." });
-    }
-
+    // Buscar al usuario primero para verificar su rol
     const user = await Usuario.findByPk(id);
 
+    // 1. Verificar si el usuario existe
     if (!user) {
-      return res.status(404).json({ error: "Usuario no encontrado." });
-    }
-
-    // Doble verificación con el registro real de la BD
-    if (user.idUsuario === 1 || user.idRol === 1) {
-      return res
-        .status(403)
-        .json({ error: "El usuario Master no puede ser eliminado." });
-    }
-
-    // Eliminación física del registro
-    await user.destroy();
-
-    return res.status(200).json({ message: "Usuario eliminado exitosamente." });
-  } catch (error) {
-    console.error("❌ Error al eliminar usuario:", error);
-
-    // Error de FK: el usuario tiene registros relacionados en otras tablas
-    if (error.name === "SequelizeForeignKeyConstraintError") {
-      return res.status(409).json({
-        error:
-          "No se puede eliminar el usuario porque tiene registros asociados en el sistema.",
+      return res.status(404).json({
+        message: "Usuario no encontrado en el sistema.",
       });
     }
 
-    return res.status(500).json({ error: "Error interno del servidor." });
+    // 2. CRÍTICO: Bloquear eliminación si el id_rol es 1 (Master/Administrador)
+    // Esta es la validación que solicitaste
+    if (user.id_rol === 1) {
+      return res.status(403).json({
+        message:
+          "Seguridad: No se permite eliminar usuarios con Rol Administrativo/Master.",
+      });
+    }
+
+    // 3. Ejecutar eliminación física
+    await user.destroy();
+
+    return res.status(200).json({
+      message: "El usuario ha sido eliminado permanentemente del sistema.",
+    });
+  } catch (error) {
+    console.error("❌ Error en deleteUser:", error);
+
+    // Manejo de integridad referencial (si tiene facturas o registros asociados)
+    if (error.name === "SequelizeForeignKeyConstraintError") {
+      return res.status(409).json({
+        message:
+          "No se puede eliminar el registro: este usuario tiene historial de movimientos asociados. Considere inactivarlo.",
+      });
+    }
+
+    return res.status(500).json({
+      message: "Error interno del servidor al procesar la eliminación.",
+    });
   }
 };
 

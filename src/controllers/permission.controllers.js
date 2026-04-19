@@ -58,7 +58,6 @@ const permissionController = {
     }
   },
 
-  // 4. Cambio de Estado / Borrado Lógico (RECOMENDADO)
   // 4. Eliminar un permiso (BORRADO FÍSICO DEFINITIVO)
   deletePermission: async (req, res) => {
     try {
@@ -66,7 +65,7 @@ const permissionController = {
 
       // Intentamos eliminar el registro directamente
       const deleted = await Permission.destroy({
-        where: { idPermiso: id }
+        where: { idPermiso: id },
       });
 
       if (deleted) {
@@ -82,16 +81,17 @@ const permissionController = {
       }
     } catch (error) {
       // Manejo específico para errores de Llave Foránea (Foreign Key)
-      if (error.name === 'SequelizeForeignKeyConstraintError') {
+      if (error.name === "SequelizeForeignKeyConstraintError") {
         return res.status(400).json({
           ok: false,
-          message: "No se puede eliminar: Este permiso está asignado a uno o más Roles. Primero debes desvincularlo de los roles para poder borrarlo."
+          message:
+            "No se puede eliminar: Este permiso está asignado a uno o más Roles. Primero debes desvincularlo de los roles para poder borrarlo.",
         });
       }
 
       return res.status(500).json({
         ok: false,
-        message: "Error al intentar eliminar el registro: " + error.message 
+        message: "Error al intentar eliminar el registro: " + error.message,
       });
     }
   },

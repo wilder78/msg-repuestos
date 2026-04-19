@@ -21,11 +21,11 @@ export default (sequelize, DataTypes) => {
         allowNull: true,
         field: "descripcion",
       },
-      activo: {
-        type: DataTypes.TINYINT(1),
+      idEstado: {
+        type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 1,
-        field: "activo",
+        field: "id_estado",
       },
     },
     {
@@ -40,6 +40,13 @@ export default (sequelize, DataTypes) => {
       Zona.hasMany(models.Customer, {
         foreignKey: "id_zona",
         as: "clientes",
+      });
+    }
+    // Si tienes un modelo de Estado, podrías asociarlo aquí:
+    if (models.Estado) {
+      Zona.belongsTo(models.Estado, {
+        foreignKey: "id_estado",
+        as: "estado",
       });
     }
   };

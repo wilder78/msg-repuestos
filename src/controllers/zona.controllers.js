@@ -47,7 +47,8 @@ const zonaController = {
   // 3. Crear una nueva zona en el sistema
   createZona: async (req, res = response) => {
     try {
-      const { nombre_zona, descripcion, activo } = req.body;
+      // ✅ Se recibe id_estado o idEstado del body
+      const { nombre_zona, descripcion, id_estado, idEstado } = req.body;
 
       if (!nombre_zona) {
         return res.status(400).json({
@@ -59,7 +60,8 @@ const zonaController = {
       const nuevaZona = await db.Zona.create({
         nombreZona: nombre_zona,
         descripcion: descripcion,
-        activo: activo ?? 1,
+        // ✅ Adaptado al nuevo campo idEstado
+        idEstado: idEstado || id_estado || 1,
       });
 
       return res.status(201).json({
@@ -68,9 +70,10 @@ const zonaController = {
         data: nuevaZona,
       });
     } catch (error) {
-      const errorMsg = error.name === "SequelizeValidationError"
-        ? error.errors.map((e) => e.message).join(", ")
-        : error.message;
+      const errorMsg =
+        error.name === "SequelizeValidationError"
+          ? error.errors.map((e) => e.message).join(", ")
+          : error.message;
 
       return res.status(400).json({
         status: "error",
@@ -84,12 +87,15 @@ const zonaController = {
   updateZona: async (req, res = response) => {
     const { id } = req.params;
     try {
-      const { nombre_zona, descripcion, activo } = req.body;
+      const { nombre_zona, descripcion, id_estado, idEstado } = req.body;
       const dataToUpdate = {};
 
       if (nombre_zona) dataToUpdate.nombreZona = nombre_zona;
       if (descripcion !== undefined) dataToUpdate.descripcion = descripcion;
-      if (activo !== undefined) dataToUpdate.activo = activo;
+
+      // ✅ Adaptado al nuevo campo idEstado
+      const estadoFinal = idEstado || id_estado;
+      if (estadoFinal !== undefined) dataToUpdate.idEstado = estadoFinal;
 
       const [updated] = await db.Zona.update(dataToUpdate, {
         where: { idZona: id },
@@ -117,30 +123,42 @@ const zonaController = {
     }
   },
 
-  // 5. Desactivar una zona (Borrado lógico)
+  // 5. Eliminar una zona (Borrado físico)
   deleteZona: async (req, res = response) => {
     const { id } = req.params;
     try {
-      const [result] = await db.Zona.update(
-        { activo: 0 },
-        { where: { idZona: id } }
-      );
+      // Intentamos encontrar el registro primero para verificar su existencia
+      const zona = await db.Zona.findByPk(id);
 
-      if (result === 0) {
+      if (!zona) {
         return res.status(404).json({
           status: "error",
-          message: "No se encontró la zona para desactivar.",
+          message: "No se encontró la zona que intenta eliminar.",
         });
       }
 
-      return res.json({
+      // Ejecución del borrado físico en la base de datos
+      await zona.destroy();
+
+      return res.status(200).json({
         status: "success",
-        message: "Zona desactivada correctamente",
+        message: "Zona eliminada permanentemente del sistema.",
       });
     } catch (error) {
+      console.error("❌ Error en deleteZona:", error);
+
+      // Manejo de error por integridad referencial (si la zona tiene clientes asociados)
+      if (error.name === "SequelizeForeignKeyConstraintError") {
+        return res.status(409).json({
+          status: "error",
+          message:
+            "No se puede eliminar la zona porque tiene registros (clientes) asociados. Considere inactivarla en su lugar.",
+        });
+      }
+
       return res.status(500).json({
         status: "error",
-        message: "Error al desactivar la zona",
+        message: "Error interno al intentar eliminar la zona.",
         error: error.message,
       });
     }

@@ -73,10 +73,22 @@ const rolePermissionController = {
   // 3. Revocar (eliminar) la relación
   revokePermission: async (req, res) => {
     try {
-      const { idRol, idPermiso } = req.body;
+      // Intentamos obtener de params (URL) o de body para mayor compatibilidad
+      const idRol = req.params.idRol || req.body.idRol;
+      const idPermiso = req.params.idPermiso || req.body.idPermiso;
+
+      if (!idRol || !idPermiso) {
+        return res.status(400).json({
+          ok: false,
+          message: "Se requiere idRol e idPermiso para desasignar.",
+        });
+      }
 
       const eliminado = await RolePermission.destroy({
-        where: { idRol, idPermiso },
+        where: {
+          idRol: idRol,
+          idPermiso: idPermiso,
+        },
       });
 
       if (eliminado) {
@@ -85,7 +97,10 @@ const rolePermissionController = {
           message: "Permiso revocado correctamente",
         });
       } else {
-        return res.status(404).json({ message: "La asignación no existe" });
+        return res.status(404).json({
+          ok: false,
+          message: "La asignación no existe en la base de datos.",
+        });
       }
     } catch (error) {
       return res.status(500).json({ ok: false, message: error.message });
