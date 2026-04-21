@@ -45,14 +45,12 @@ export default (sequelize, DataTypes) => {
         defaultValue: 0.0,
         field: "precio_compra",
       },
-
       stockBuenEstado: {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0,
         field: "stock_buen_estado",
       },
-
       stockDefectuoso: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -64,11 +62,12 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
         field: "id_categoria",
       },
-      activo: {
-        type: DataTypes.BOOLEAN,
+      // ✅ Atributo actualizado: de 'activo' a 'idEstado'
+      idEstado: {
+        type: DataTypes.INTEGER, // Cambiado de BOOLEAN a INTEGER
         allowNull: false,
-        defaultValue: true,
-        field: "activo",
+        defaultValue: 1, // 1 suele representar 'Activo'
+        field: "id_estado",
       },
     },
     {
@@ -83,6 +82,14 @@ export default (sequelize, DataTypes) => {
       foreignKey: "id_categoria",
       as: "categoria",
     });
+
+    // Asociación con estados si existe el modelo
+    if (models.Estado) {
+      Product.belongsTo(models.Estado, {
+        foreignKey: "id_estado",
+        as: "estado",
+      });
+    }
 
     if (models.PurchaseDetail) {
       Product.hasMany(models.PurchaseDetail, {
