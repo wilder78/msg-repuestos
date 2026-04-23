@@ -23,7 +23,19 @@ app.use(
   }),
 );
 
-app.use(express.json());
+// ✅ SOLUCIÓN AL ERROR DE JSON:
+// Solo parseamos JSON si NO es un envío de archivos (multipart/form-data)
+app.use((req, res, next) => {
+  if (
+    req.headers["content-type"] &&
+    req.headers["content-type"].includes("multipart/form-data")
+  ) {
+    next();
+  } else {
+    express.json()(req, res, next);
+  }
+});
+
 app.use(express.urlencoded({ extended: true }));
 
 // --- 2. ARCHIVOS ESTÁTICOS (VITAL PARA EL PDF) ---

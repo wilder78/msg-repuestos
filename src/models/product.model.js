@@ -2,7 +2,7 @@ export default (sequelize, DataTypes) => {
   const Product = sequelize.define(
     "Product",
     {
-      idProducto: {
+      id_producto: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
@@ -11,62 +11,64 @@ export default (sequelize, DataTypes) => {
       referencia: {
         type: DataTypes.STRING(50),
         allowNull: false,
-        field: "referencia",
       },
       nombre: {
         type: DataTypes.STRING(150),
         allowNull: false,
-        field: "nombre",
       },
       descripcion: {
         type: DataTypes.STRING(255),
         allowNull: true,
-        field: "descripcion",
       },
       marca: {
         type: DataTypes.STRING(50),
         allowNull: false,
-        field: "marca",
       },
       modelo: {
         type: DataTypes.STRING(50),
         allowNull: true,
-        field: "modelo",
       },
-      imagenUrl: {
+      imagen_url: {
         type: DataTypes.STRING(255),
         allowNull: true,
         defaultValue: "default_producto.png",
         field: "imagen_url",
       },
-      precioCompra: {
+      precio_compra: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
         defaultValue: 0.0,
         field: "precio_compra",
       },
-      stockBuenEstado: {
+      stock_buen_estado: {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0,
         field: "stock_buen_estado",
       },
-      stockDefectuoso: {
+      stock_defectuoso: {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0,
         field: "stock_defectuoso",
       },
-      idCategoria: {
+      // --- NUEVA COLUMNA AGREGADA ---
+      fecha_registro: {
+        type: DataTypes.DATEONLY, // Representa el tipo 'date' de MySQL
+        allowNull: false,
+        defaultValue: DataTypes.NOW, // Usa la fecha actual por defecto
+        field: "fecha_registro",
+      },
+      // ------------------------------
+      id_categoria: {
         type: DataTypes.INTEGER,
         allowNull: false,
         field: "id_categoria",
       },
-      // ✅ Atributo actualizado: de 'activo' a 'idEstado'
-      idEstado: {
-        type: DataTypes.INTEGER, // Cambiado de BOOLEAN a INTEGER
+      id_estado: {
+        type: DataTypes.INTEGER,
         allowNull: false,
-        defaultValue: 1, // 1 suele representar 'Activo'
+        defaultValue: 1,
         field: "id_estado",
       },
     },
@@ -83,7 +85,6 @@ export default (sequelize, DataTypes) => {
       as: "categoria",
     });
 
-    // Asociación con estados si existe el modelo
     if (models.Estado) {
       Product.belongsTo(models.Estado, {
         foreignKey: "id_estado",
@@ -101,3 +102,103 @@ export default (sequelize, DataTypes) => {
 
   return Product;
 };
+
+// export default (sequelize, DataTypes) => {
+//   const Product = sequelize.define(
+//     "Product",
+//     {
+//       id_producto: {
+//         // Cambiado para coincidir con el estándar de BD y facilitar el mapeo
+//         type: DataTypes.INTEGER,
+//         primaryKey: true,
+//         autoIncrement: true,
+//         field: "id_producto",
+//       },
+//       referencia: {
+//         type: DataTypes.STRING(50),
+//         allowNull: false,
+//       },
+//       nombre: {
+//         type: DataTypes.STRING(150),
+//         allowNull: false,
+//       },
+//       descripcion: {
+//         type: DataTypes.STRING(255),
+//         allowNull: true,
+//       },
+//       marca: {
+//         type: DataTypes.STRING(50),
+//         allowNull: false,
+//       },
+//       modelo: {
+//         type: DataTypes.STRING(50),
+//         allowNull: true,
+//       },
+//       imagen_url: {
+//         // Ahora coincide con el campo "imagen_url" que envíes
+//         type: DataTypes.STRING(255),
+//         allowNull: true,
+//         defaultValue: "default_producto.png",
+//         field: "imagen_url",
+//       },
+//       precio_compra: {
+//         // <--- ESTE CAMBIO arregla tu problema en Postman
+//         type: DataTypes.DECIMAL(10, 2),
+//         allowNull: false,
+//         defaultValue: 0.0,
+//         field: "precio_compra",
+//       },
+//       stock_buen_estado: {
+//         type: DataTypes.INTEGER,
+//         allowNull: false,
+//         defaultValue: 0,
+//         field: "stock_buen_estado",
+//       },
+//       stock_defectuoso: {
+//         type: DataTypes.INTEGER,
+//         allowNull: false,
+//         defaultValue: 0,
+//         field: "stock_defectuoso",
+//       },
+//       id_categoria: {
+//         type: DataTypes.INTEGER,
+//         allowNull: false,
+//         field: "id_categoria",
+//       },
+//       id_estado: {
+//         type: DataTypes.INTEGER,
+//         allowNull: false,
+//         defaultValue: 1,
+//         field: "id_estado",
+//       },
+//     },
+//     {
+//       tableName: "productos",
+//       timestamps: false,
+//       freezeTableName: true,
+//     },
+//   );
+
+//   Product.associate = (models) => {
+//     Product.belongsTo(models.Category, {
+//       foreignKey: "id_categoria",
+//       as: "categoria",
+//     });
+
+//     if (models.Estado) {
+//       Product.belongsTo(models.Estado, {
+//         foreignKey: "id_estado",
+//         as: "estado",
+//       });
+//     }
+
+//     if (models.PurchaseDetail) {
+//       Product.hasMany(models.PurchaseDetail, {
+//         foreignKey: "id_producto",
+//         as: "detallesCompra",
+//       });
+//     }
+//   };
+
+//   return Product;
+// };
