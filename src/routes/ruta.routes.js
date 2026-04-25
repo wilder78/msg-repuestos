@@ -18,7 +18,13 @@ router.get("/:id", rutaController.getRutaById);
 // Planificación de nueva ruta (Cabecera y Detalle)
 router.post("/", rutaController.createRuta);
 
+// Actualización de datos maestros (Vendedor, Zona, Nombre, Estado)
+router.put("/:id", rutaController.updateRuta);
+
 // Actualización de estado de visita (Check-in/Check-out del transportista)
 router.patch("/detalle/:idDetalleRuta", rutaController.updateVisita);
+
+// Eliminación de ruta y sus detalles asociados
+router.delete("/:id", rutaController.deleteRuta);
 
 export default router;

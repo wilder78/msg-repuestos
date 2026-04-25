@@ -1,3 +1,4 @@
+// rutaDetail.model.js
 export default (sequelize, DataTypes) => {
   const RutaDetail = sequelize.define(
     "RutaDetail",
@@ -57,17 +58,16 @@ export default (sequelize, DataTypes) => {
 
   RutaDetail.associate = (models) => {
     RutaDetail.belongsTo(models.Ruta, {
-      foreignKey: "id_ruta",
+      foreignKey: "idRuta",
       as: "cabeceraRuta",
     });
-
     RutaDetail.belongsTo(models.Customer, {
-      foreignKey: "id_cliente",
+      foreignKey: "idCliente",
       as: "cliente",
     });
-
+    
     RutaDetail.belongsTo(models.Order, {
-      foreignKey: "id_pedido",
+      foreignKey: "idPedido",
       as: "pedido",
     });
   };

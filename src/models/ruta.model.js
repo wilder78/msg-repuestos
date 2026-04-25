@@ -1,3 +1,4 @@
+// ruta.model.js
 export default (sequelize, DataTypes) => {
   const Ruta = sequelize.define(
     "Ruta",
@@ -54,17 +55,15 @@ export default (sequelize, DataTypes) => {
 
   Ruta.associate = (models) => {
     Ruta.hasMany(models.RutaDetail, {
-      foreignKey: "id_ruta",
+      foreignKey: "idRuta",
       as: "detalles",
     });
-
     Ruta.belongsTo(models.Zona, {
-      foreignKey: "id_zona",
+      foreignKey: "idZona",
       as: "zona",
     });
-
     Ruta.belongsTo(models.Empleado, {
-      foreignKey: "id_empleado",
+      foreignKey: "idEmpleado",
       as: "empleado",
     });
   };
