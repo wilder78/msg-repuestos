@@ -8,16 +8,53 @@ const employeeController = {
   // 1. Registro de nuevo personal
   create: async (req, res) => {
     try {
+      const { numeroDocumento, nombre, apellido } = req.body;
+
+      // 1. Validación de campos obligatorios (opcional pero recomendada)
+      if (!numeroDocumento || !nombre || !apellido) {
+        return res.status(400).json({
+          status: "error",
+          message:
+            "El número de documento, nombre y apellido son obligatorios.",
+        });
+      }
+
+      // 2. Verificación de duplicados
+      // Buscamos si ya existe un empleado con ese mismo número de documento
+      const empleadoExistente = await Employee.findOne({
+        where: { numeroDocumento: numeroDocumento },
+      });
+
+      if (empleadoExistente) {
+        return res.status(400).json({
+          status: "error",
+          message: `El empleado con documento ${numeroDocumento} ya se encuentra registrado.`,
+        });
+      }
+
+      // 3. Creación del registro
       const nuevoEmpleado = await Employee.create(req.body);
-      res.status(201).json({
+
+      return res.status(201).json({
         status: "success",
         message: "Empleado registrado exitosamente",
         data: nuevoEmpleado,
       });
     } catch (error) {
-      res.status(400).json({
+      console.error("❌ Error en createEmployee:", error);
+
+      // Manejo de errores específicos de Sequelize (Unique Constraints)
+      if (error.name === "SequelizeUniqueConstraintError") {
+        return res.status(400).json({
+          status: "error",
+          message: "El número de documento ya está en uso.",
+          error: error.errors[0].message,
+        });
+      }
+
+      return res.status(500).json({
         status: "error",
-        message: "No se pudo crear el empleado.",
+        message: "Error interno del servidor al procesar el registro.",
         error: error.message,
       });
     }

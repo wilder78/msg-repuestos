@@ -1,5 +1,6 @@
 import { response } from "express";
 import db from "../models/index.model.js";
+import { Op } from "sequelize";
 
 const customerController = {
   // 1. Obtener todos los clientes
@@ -11,15 +12,15 @@ const customerController = {
           "idTipoDocumento",
           "numeroDocumento",
           "razonSocial",
-          "personaContacto", // Confirmado
+          "personaContacto",
           "direccion",
           "telefono",
           "email",
           "tipoCliente",
           "cupoCredito",
-          "idEstado", // Antes 'activo'
+          "idEstado",
           "idZona",
-          "fechaRegistro", // Confirmado
+          "fechaRegistro",
         ],
         include: [
           {
@@ -71,9 +72,9 @@ const customerController = {
     try {
       console.log("📥 Datos recibidos para creación:", req.body);
 
-      const { razonSocial, idTipoDocumento, numeroDocumento } = req.body;
+      const { razonSocial, idTipoDocumento, numeroDocumento, email } = req.body;
 
-      // Validaciones críticas
+      // 1. Validación de campos obligatorios
       if (!razonSocial || !idTipoDocumento || !numeroDocumento) {
         return res.status(400).json({
           status: "error",
@@ -82,16 +83,38 @@ const customerController = {
         });
       }
 
-      // Preparación de data con defaults del modelo
+      // 2. Verificación de duplicados (Email o Documento)
+      const existingCustomer = await db.Customer.findOne({
+        where: {
+          [Op.or]: [
+            { numeroDocumento: numeroDocumento },
+            { email: email || null }, // Evitamos comparar si el email viene vacío
+          ],
+        },
+      });
+
+      if (existingCustomer) {
+        const conflictField =
+          existingCustomer.numeroDocumento === numeroDocumento
+            ? "número de documento"
+            : "correo electrónico";
+
+        return res.status(400).json({
+          status: "error",
+          message: `Ya existe un cliente registrado con ese ${conflictField}.`,
+        });
+      }
+
+      // 3. Preparación de datos
       const clienteData = {
         ...req.body,
         idEstado: req.body.idEstado || 1,
         idZona: req.body.idZona || 1,
         tipoCliente: req.body.tipoCliente || "General",
         cupoCredito: parseFloat(req.body.cupoCredito) || 0.0,
-        // Si viene fechaRegistro desde una migración se usa, sino Sequelize usa NOW()
       };
 
+      // 4. Creación
       const newCustomer = await db.Customer.create(clienteData);
 
       return res.status(201).json({
