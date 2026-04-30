@@ -1,19 +1,15 @@
 import db from "../models/index.model.js";
-import colombia from "colombia-data-social";
+import colombia from "colombia-data-social"; // ✅ import default
 
 const Department = db.Department;
+const { departamentos } = colombia.data; // ✅ estructura correcta
 
-/**
- * Obtener todos los departamentos desde la base de datos
- */
 export const getDepartments = async (req, res) => {
   try {
-    const departments = await Department.findAll({
-      // Usamos el nombre de la propiedad en el modelo (name)
-      // Sequelize se encarga de traducirlo a "nombre" en el SQL
+    const departmentList = await Department.findAll({
       order: [["name", "ASC"]],
     });
-    res.status(200).json(departments);
+    res.status(200).json(departmentList);
   } catch (error) {
     res.status(500).json({
       message: "Error al obtener los departamentos",
@@ -22,21 +18,14 @@ export const getDepartments = async (req, res) => {
   }
 };
 
-/**
- * Sincronizar/Poblar departamentos desde la librería a la base de datos
- */
 export const seedDepartments = async (req, res) => {
   try {
-    const departmentsList = colombia.asTree();
-
-    const departmentsData = departmentsList.map((item, index) => ({
-      id: index + 1,
-      name: item.departamento, // Mapea a la columna 'nombre' gracias al modelo
+    const departmentsData = departamentos.map((item) => ({
+      id: parseInt(item.codigo), // "05" → 5
+      name: item.nombre, // "Antioquia"
     }));
 
-    // bulkCreate usará el mapeo definido en el modelo
     await Department.bulkCreate(departmentsData, {
-      // Importante: Aquí usamos el nombre de la propiedad del modelo
       updateOnDuplicate: ["name"],
     });
 
@@ -52,9 +41,6 @@ export const seedDepartments = async (req, res) => {
   }
 };
 
-/**
- * Obtener un departamento por ID
- */
 export const getDepartmentById = async (req, res) => {
   try {
     const { id } = req.params;

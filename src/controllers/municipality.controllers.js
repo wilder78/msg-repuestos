@@ -4,6 +4,8 @@ import colombia from "colombia-data-social";
 const Municipality = db.Municipality;
 const Department = db.Department;
 
+const { departamentos } = colombia.data; // ✅ estructura correcta
+
 /**
  * Obtener municipios filtrados por departamento
  * GET /api/municipalities/department/:departmentId
@@ -13,9 +15,7 @@ export const getMunicipalitiesByDepartment = async (req, res) => {
     const { departmentId } = req.params;
 
     const municipalities = await Municipality.findAll({
-      // Sequelize usará el mapeo 'field: department_id' definido en el modelo
       where: { departmentId: departmentId },
-      // Sequelize usará el mapeo 'field: nombre' definido en el modelo
       order: [["name", "ASC"]],
     });
 
@@ -33,10 +33,6 @@ export const getMunicipalitiesByDepartment = async (req, res) => {
  */
 export const seedMunicipalities = async (req, res) => {
   try {
-    const departmentsList = colombia.asTree();
-    let allMunicipalities = [];
-    let municipalityCounter = 1;
-
     // 1. Validamos que existan departamentos en la DB
     const dbDepartments = await Department.findAll();
 
@@ -46,27 +42,30 @@ export const seedMunicipalities = async (req, res) => {
       });
     }
 
-    // 2. Procesamos la lista de la librería
-    departmentsList.forEach((dept) => {
-      // Buscamos coincidencia por el nombre del departamento
+    // 2. Procesamos usando la estructura correcta: data.departamentos
+    let allMunicipalities = [];
+    let municipalityCounter = 1;
+
+    departamentos.forEach((dept) => {
+      // Buscar por nombre (dept.nombre = "Antioquia")
       const departmentFound = dbDepartments.find(
-        (d) => d.name === dept.departamento,
+        (d) => d.name.toLowerCase() === dept.nombre.toLowerCase(),
       );
 
       if (departmentFound) {
-        dept.ciudades.forEach((city) => {
+        // municipios es array de { codigo, nombre }
+        dept.municipios.forEach((city) => {
           allMunicipalities.push({
             id: municipalityCounter++,
-            name: city,
+            name: city.nombre, // ✅ city.nombre no city directamente
             departmentId: departmentFound.id,
           });
         });
       }
     });
 
-    // 3. Inserción masiva usando los nombres de las propiedades del modelo
+    // 3. Inserción masiva
     await Municipality.bulkCreate(allMunicipalities, {
-      // IMPORTANTE: Usamos los nombres de los atributos de JS, no de las columnas de SQL
       updateOnDuplicate: ["name", "departmentId"],
     });
 
@@ -88,7 +87,6 @@ export const seedMunicipalities = async (req, res) => {
 export const getAllMunicipalities = async (req, res) => {
   try {
     const municipalities = await Municipality.findAll({
-      // Sequelize usará automáticamente los JOINs basados en las relaciones del modelo
       include: [
         {
           model: Department,
